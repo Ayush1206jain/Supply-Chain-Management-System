@@ -1,0 +1,32 @@
+# Dependencies
+node_modules/
+
+# Environment
+.env
+.env.local
+*.local
+
+# Build / artifacts
+dist/
+build/
+cache/
+artifacts/
+typechain-types/
+
+# Logs & OS
+*.log
+npm-debug.log*
+.DS_Store
+Thumbs.db
+
+# Ignore project planning files
+plan/
+daily_progress/
+
+# IDE
+.idea/
+.vscode/*
+!.vscode/extensions.json
+
+# Coverage
+coverage/

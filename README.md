@@ -64,4 +64,9 @@ This hybrid design balances performance and security.
 - **Database:** MongoDB (Mongoose) — schemas in `backend/src/models/`
 
 ## 📌 Current Status
+Day 3 backend foundation is completed:
+- Express app setup (`backend/src/app.js`)
+- MongoDB connector (`backend/src/config/db.js`)
+- Health endpoint (`GET /health`)
+
 Project is under development.
