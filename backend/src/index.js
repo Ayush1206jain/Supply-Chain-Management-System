@@ -7,6 +7,8 @@ const port = Number(process.env.PORT || 3000);
 const mongoUri =
   process.env.MONGODB_URI || "mongodb://127.0.0.1:27017/supply-chain";
 
+  console.log("Mongo URI:", process.env.MONGODB_URI);
+
 async function startServer() {
   try {
     await connectDB(mongoUri);
