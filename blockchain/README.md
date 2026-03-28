@@ -1,9 +1,17 @@
 # Smart contracts (Days 7–9)
 
-Hardhat project will live here: Solidity contracts, deploy scripts, and tests.
+## Day 7 (design)
 
-Planned layout (to be added in Days 7–8):
+- **`contracts/SupplyChainRegistry.sol`** — structs (`Product`), mappings (`bytes32 => Product`), events (`ProductRegistered`, `OwnershipTransferred`), and minimal `registerProduct` / `transferOwnership` / `getProduct` for the next step.
 
-- `contracts/` — product registry and ownership transfer
+`productId` and `contentHash` are `bytes32` so the backend can pass values derived consistently (e.g. keccak256 of a stable id string for `productId`, hex content hash for `contentHash`).
+
+## Day 8+ (implementation)
+
+Hardhat project will be added here: compile, deploy locally, tests.
+
+Planned layout:
+
+- `contracts/` — registry (done for Day 7 design)
 - `scripts/` — deploy and helpers
 - `test/` — contract tests
