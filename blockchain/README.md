@@ -1,17 +1,38 @@
-# Smart contracts (Days 7–9)
+# Smart contracts
 
-## Day 7 (design)
+## Design 
 
-- **`contracts/SupplyChainRegistry.sol`** — structs (`Product`), mappings (`bytes32 => Product`), events (`ProductRegistered`, `OwnershipTransferred`), and minimal `registerProduct` / `transferOwnership` / `getProduct` for the next step.
+- **`contracts/SupplyChainRegistry.sol`** — `Product` struct, `mapping(bytes32 => Product)`, events `ProductRegistered` and `OwnershipTransferred`, and `registerProduct` / `transferOwnership` / `getProduct`.
 
-`productId` and `contentHash` are `bytes32` so the backend can pass values derived consistently (e.g. keccak256 of a stable id string for `productId`, hex content hash for `contentHash`).
+`productId` and `contentHash` are `bytes32` so the backend can pass values derived consistently (for example `keccak256` of a stable id string for `productId`, and a 32-byte content hash).
 
-## Day 8+ (implementation)
+## Hardhat 
 
-Hardhat project will be added here: compile, deploy locally, tests.
+From this folder:
 
-Planned layout:
+```bash
+npm install
+npm run compile
+npm test
+```
 
-- `contracts/` — registry (done for Day 7 design)
-- `scripts/` — deploy and helpers
-- `test/` — contract tests
+**Deploy to a local Hardhat node** (two terminals):
+
+Terminal A — start the chain:
+
+```bash
+npm run node
+```
+
+Terminal B — deploy:
+
+```bash
+npm run deploy:local
+```
+
+### Layout
+
+- `contracts/` — Solidity sources
+- `hardhat.config.js` — Solidity 0.8.20
+- `scripts/deploy.js` — deploy `SupplyChainRegistry`
+- `test/` — Hardhat tests
