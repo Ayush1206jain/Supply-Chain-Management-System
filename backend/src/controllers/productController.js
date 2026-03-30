@@ -1,5 +1,6 @@
 const { Product } = require("../models");
 const { generateProductHash } = require("../utils/hash");
+const { registerProductOnChain } = require("../utils/chainAdapter");
 
 async function createProduct(req, res) {
   const { sku, name, description, price } = req.body || {};
@@ -31,6 +32,15 @@ async function createProduct(req, res) {
     createdBy: req.user.id,
     contentHash,
   });
+
+  // ── Day 9: anchor content hash on-chain ──────────────────────────────────
+  // Fire-and-forget: failure does NOT abort the API response.
+  const txHash = await registerProductOnChain(product);
+  if (txHash) {
+    product.blockchainTxHash = txHash;
+    await product.save();
+  }
+  // ─────────────────────────────────────────────────────────────────────────
 
   return res.status(201).json({
     success: true,
