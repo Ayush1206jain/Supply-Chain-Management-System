@@ -1,5 +1,6 @@
 const mongoose = require("mongoose");
 const { Product, Transfer, User } = require("../models");
+const { transferOwnershipOnChain } = require("../utils/chainAdapter");
 
 async function createTransfer(req, res) {
   const { productId, toUserId } = req.body || {};
@@ -69,11 +70,29 @@ async function createTransfer(req, res) {
       .populate("owner", "email role")
       .populate("createdBy", "email role");
 
+    // ── Day 9: record transfer on-chain ──────────────────────────────────
+    // Run after session closes so DB is already committed.
+    // Failure is non-fatal: syncStatus tracks it for Day 11 retries.
+    const txHash = await transferOwnershipOnChain(product, toUser._id);
+
+    let syncStatus;
+    if (txHash) {
+      transfer.blockchainTxHash = txHash;
+      transfer.syncStatus = "confirmed";
+      syncStatus = "confirmed";
+    } else {
+      transfer.syncStatus = "failed";
+      syncStatus = "failed";
+    }
+    await transfer.save();
+    // ─────────────────────────────────────────────────────────────────────
+
     return res.status(201).json({
       success: true,
       message: "Ownership transferred successfully",
       transfer,
       product: updatedProduct,
+      blockchainSyncStatus: syncStatus,
     });
   } finally {
     await session.endSession();
