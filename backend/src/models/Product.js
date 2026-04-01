@@ -39,10 +39,15 @@ const productSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
-    /** Filled when a tx is sent on-chain (Day 9). */
+    /** Filled when a tx is sent on-chain . */
     blockchainTxHash: {
       type: String,
       default: null,
+    },
+    /** Number of on-chain registration attempts (. */
+    retryCount: {
+      type: Number,
+      default: 0,
     },
   },
   { timestamps: true }

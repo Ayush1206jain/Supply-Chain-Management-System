@@ -29,6 +29,11 @@ const transferSchema = new mongoose.Schema(
       enum: [...SYNC_STATUS],
       default: "pending",
     },
+    /** Number of chain-sync attempts made . Capped at MAX_RETRIES. */
+    retryCount: {
+      type: Number,
+      default: 0,
+    },
   },
   { timestamps: true }
 );
