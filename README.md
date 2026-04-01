@@ -50,7 +50,7 @@ The system follows a layered architecture combining traditional backend systems 
 
 ---
 
-### ⚖️ Design Decision (Important)
+### ⚖️ Design Decision 
 
 - **Off-chain (DB):** Fast, scalable operations  
 - **On-chain (Blockchain):** Immutable proof & trust  
@@ -60,13 +60,30 @@ This hybrid design balances performance and security.
 ## 🛠️ Tech Stack
 
 - **Backend:** Node.js / Express
-- **Blockchain:** (to be implemented)
+- **Blockchain:** Hardhat + `SupplyChainRegistry` (`blockchain/`) — compile, test, deploy locally
 - **Database:** MongoDB (Mongoose) — schemas in `backend/src/models/`
 
 ## 📌 Current Status
-Day 3 backend foundation is completed:
+ backend foundation is completed:
 - Express app setup (`backend/src/app.js`)
 - MongoDB connector (`backend/src/config/db.js`)
 - Health endpoint (`GET /health`)
+- Authentication stack added :
+  - `POST /api/auth/register`
+  - `POST /api/auth/login`
+  - `GET /api/auth/me` (Bearer token)
+  - JWT + role-based middleware
+- Product API added :
+  - `POST /api/products` (manufacturer/admin only, generates `contentHash`)
+  - `GET /api/products`
+  - `GET /api/products/:id`
+- Ownership transfer API added :
+  - `POST /api/transfers` (validates current owner, updates owner, records transfer)
+  - `GET /api/transfers/product/:productId` (transfer history)
+- Smart contract design :
+  - `blockchain/contracts/SupplyChainRegistry.sol` — structs, mappings, events (`ProductRegistered`, `OwnershipTransferred`)
+- Hardhat :
+  - `cd blockchain` → `npm install` → `npm run compile` → `npm test`
+  - Local deploy: `npm run node` then `npm run deploy:local`
 
 Project is under development.
