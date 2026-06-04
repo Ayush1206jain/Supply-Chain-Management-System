@@ -13,7 +13,7 @@
  */
 
 const mongoose = require("mongoose");
-const { MongoMemoryServer } = require("mongodb-memory-server");
+const { MongoMemoryReplSet } = require("mongodb-memory-server");
 const request = require("supertest");
 const { signAccessToken } = require("../src/utils/jwt");
 
@@ -24,7 +24,7 @@ let mongod;
  * Call this from a `beforeAll` in your test file.
  */
 async function connect() {
-  mongod = await MongoMemoryServer.create();
+  mongod = await MongoMemoryReplSet.create({ replSet: { count: 1 } });
   const uri = mongod.getUri();
   await mongoose.connect(uri);
 }
@@ -59,8 +59,7 @@ function getApp() {
   delete process.env.DEPLOYER_PRIVATE_KEY;
   delete process.env.CONTRACT_ADDRESS;
 
-  // Reset module cache so config singletons re-initialize cleanly
-  jest.resetModules();
+  // We MUST NOT reset modules, otherwise it drops the established Mongoose connection 
   const app = require("../src/app");
   return app;
 }

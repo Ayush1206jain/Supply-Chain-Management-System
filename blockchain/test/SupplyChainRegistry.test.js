@@ -38,10 +38,13 @@ describe("SupplyChainRegistry", function () {
       const { registry, owner } = await deployFixture();
       const { productId, contentHash } = makeIds("SKU-001");
 
-      await expect(registry.registerProduct(productId, contentHash))
+      const tx = await registry.registerProduct(productId, contentHash);
+      const receipt = await tx.wait();
+      const block = await ethers.provider.getBlock(receipt.blockNumber);
+
+      await expect(tx)
         .to.emit(registry, "ProductRegistered")
-        .withArgs(productId, contentHash, owner.address, await ethers
-          .provider.getBlock("latest").then((b) => b.timestamp + 1));
+        .withArgs(productId, contentHash, owner.address, block.timestamp);
 
       // Just check event is emitted without strict timestamp arg
     });
@@ -202,7 +205,7 @@ describe("SupplyChainRegistry", function () {
       const block = await ethers.provider.getBlock(receipt.blockNumber);
 
       const [, , registeredAt] = await registry.getProduct(productId);
-      expect(registeredAt).to.equal(BigInt(block.timestamp));
+      expect(Number(registeredAt)).to.equal(block.timestamp);
     });
   });
 });

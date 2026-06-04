@@ -7,7 +7,7 @@
  */
 
 const request = require("supertest");
-const { connect, clearDB, disconnect, getApp, authHeader } = require("../setup");
+const { connect, clearDB, disconnect, getApp, authHeader } = require("./setup");
 
 let app;
 
