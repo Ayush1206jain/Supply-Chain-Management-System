@@ -64,6 +64,61 @@
   --font-size-2xl: 1.5rem;
   --font-size-3xl: 1.875rem;
   --font-size-4xl: 2.25rem;
+
+  /* Navbar Theme Variables */
+  --clr-navbar-bg: rgba(11, 15, 26, 0.85);
+  --clr-navbar-border: var(--clr-border);
+
+  /* Glass Card Theme Variables */
+  --clr-glass-bg: rgba(17, 24, 39, 0.6);
+  --clr-glass-border: rgba(255, 255, 255, 0.06);
+
+  /* Dashboard Hero Gradients (Dark) */
+  --clr-hero-bg-manufacturer: linear-gradient(135deg, #1d4ed8, #2563eb);
+  --clr-hero-bg-distributor: linear-gradient(135deg, #047857, #10b981);
+  --clr-hero-bg-retailer: linear-gradient(135deg, #b45309, #f59e0b);
+  --clr-hero-bg-admin: linear-gradient(135deg, #6d28d9, #8b5cf6);
+  --clr-hero-text: #ffffff;
+  --clr-hero-role-text: rgba(255, 255, 255, 0.8);
+  --clr-hero-border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+/* ── Light Theme Overrides ─────────────────────────────────────────────────── */
+[data-theme="light"] {
+  --clr-bg:        #F8FAFC;
+  --clr-surface:   #FFFFFF;
+  --clr-surface-2: #F1F5F9;
+  --clr-surface-3: #E2E8F0;
+  --clr-border:    rgba(0, 0, 0, 0.08);
+  --clr-border-focus: rgba(37, 99, 235, 0.4);
+  --clr-text:      #0f172a;
+  --clr-text-dim:  #475569;
+  --clr-text-muted:#94a3b8;
+  --clr-primary-400: #2563EB;
+  --clr-primary-500: #2563EB;
+  --clr-primary-600: #1d4ed8;
+  --clr-primary-700: #1e40af;
+  --shadow-sm:  0 1px 3px rgba(0,0,0,.06);
+  --shadow-md:  0 4px 12px rgba(0,0,0,.08);
+  --shadow-lg:  0 8px 30px rgba(0,0,0,.10);
+  --shadow-glow: 0 0 20px rgba(37, 99, 235, .10);
+
+  /* Navbar */
+  --clr-navbar-bg: rgba(255, 255, 255, 0.85);
+  --clr-navbar-border: var(--clr-border);
+
+  /* Glass Card */
+  --clr-glass-bg: rgba(255, 255, 255, 0.7);
+  --clr-glass-border: rgba(0, 0, 0, 0.06);
+
+  /* Dashboard Hero Gradients (Light) */
+  --clr-hero-bg-manufacturer: linear-gradient(135deg, #eff6ff, #dbeafe);
+  --clr-hero-bg-distributor: linear-gradient(135deg, #ecfdf5, #d1fae5);
+  --clr-hero-bg-retailer: linear-gradient(135deg, #fffbeb, #fef3c7);
+  --clr-hero-bg-admin: linear-gradient(135deg, #faf5ff, #f3e8ff);
+  --clr-hero-text: #1e1b4b;
+  --clr-hero-role-text: #4f46e5;
+  --clr-hero-border: 1px solid rgba(139, 92, 246, 0.15);
 }
 
 /* ── Reset ────────────────────────────────────────────────────────────────── */
@@ -236,10 +291,11 @@ img {
 }
 
 .card-glass {
-  background: rgba(17, 24, 39, 0.6);
+  background: var(--clr-glass-bg);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--clr-glass-border);
+  transition: background 0.3s ease, border-color 0.3s ease;
 }
 
 /* ── Badge ────────────────────────────────────────────────────────────────── */

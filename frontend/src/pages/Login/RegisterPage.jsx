@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { registerUser } from "../../api/authService";
+import AuthLayout from "./AuthLayout";
 import "./Auth.css";
 
 const ROLES = ["manufacturer", "distributor", "retailer", "admin"];
@@ -55,11 +56,7 @@ export default function RegisterPage() {
   }
 
   return (
-    <div className="auth-page">
-      {/* Background decoration */}
-      <div className="auth-bg-glow auth-bg-glow--1" />
-      <div className="auth-bg-glow auth-bg-glow--2" />
-
+    <AuthLayout>
       <div className="auth-card animate-scale-in" id="register-card">
         {/* Header */}
         <div className="auth-header">
@@ -167,6 +164,6 @@ export default function RegisterPage() {
           </Link>
         </p>
       </div>
-    </div>
+    </AuthLayout>
   );
 }

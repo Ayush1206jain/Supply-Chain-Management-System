@@ -1,5 +1,6 @@
 import { NavLink, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import ThemeToggle from "./ThemeToggle";
 import "./Navbar.css";
 
 /**
@@ -47,10 +48,11 @@ export default function Navbar() {
           )}
         </div>
 
-        {/* User info + logout */}
+        {/* User info + theme toggle + logout */}
         <div className="navbar-user">
+          <ThemeToggle />
           <span className="badge badge-primary" id="user-role-badge">
-            {user?.role}
+            {user?.role?.toUpperCase()}
           </span>
           <span className="navbar-email">{user?.email}</span>
           <button

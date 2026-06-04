@@ -1,0 +1,48 @@
+/* ── Theme Toggle Button ─────────────────────────────────────────────────── */
+.theme-toggle-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  border: 1px solid var(--clr-border);
+  border-radius: var(--radius-full);
+  background: var(--clr-surface-2);
+  color: var(--clr-text-dim);
+  cursor: pointer;
+  font-family: var(--font-family);
+  font-size: 13px;
+  font-weight: 600;
+  transition: all 0.25s ease;
+  white-space: nowrap;
+}
+
+.theme-toggle-btn:hover {
+  border-color: var(--clr-border-focus);
+  color: var(--clr-text);
+  background: var(--clr-surface-3);
+  transform: scale(1.04);
+}
+
+.theme-toggle-icon {
+  display: flex;
+  align-items: center;
+}
+
+.theme-toggle-icon svg {
+  width: 16px;
+  height: 16px;
+  transition: all 0.3s ease;
+}
+
+/* Light theme overrides for the button itself */
+[data-theme="light"] .theme-toggle-btn {
+  background: rgba(0, 0, 0, 0.04);
+  border-color: rgba(0, 0, 0, 0.12);
+  color: #475569;
+}
+
+[data-theme="light"] .theme-toggle-btn:hover {
+  background: rgba(0, 0, 0, 0.08);
+  color: #1e293b;
+  border-color: #2563EB;
+}

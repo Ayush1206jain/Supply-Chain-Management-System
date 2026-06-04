@@ -15,6 +15,8 @@
   padding: 36px 40px;
   position: relative;
   overflow: hidden;
+  border: var(--clr-hero-border);
+  transition: border-color 0.3s ease;
 }
 
 .dashboard-hero::after {
@@ -41,7 +43,7 @@
 .dashboard-welcome {
   font-size: var(--font-size-2xl);
   font-weight: 700;
-  color: #fff;
+  color: var(--clr-hero-text);
 }
 
 .dashboard-email {
@@ -51,7 +53,7 @@
 
 .dashboard-role-label {
   font-size: var(--font-size-sm);
-  color: rgba(255,255,255,.75);
+  color: var(--clr-hero-role-text);
   margin-top: 4px;
 }
 

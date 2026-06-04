@@ -9,7 +9,7 @@ import "./Dashboard.css";
 const ROLE_CONFIG = {
   manufacturer: {
     label: "Manufacturer",
-    gradient: "linear-gradient(135deg, #4263eb, #748ffc)",
+    gradient: "var(--clr-hero-bg-manufacturer)",
     icon: "🏭",
     actions: [
       { label: "Register Product", path: "/products", icon: "📦" },
@@ -19,7 +19,7 @@ const ROLE_CONFIG = {
   },
   distributor: {
     label: "Distributor",
-    gradient: "linear-gradient(135deg, #12b886, #38d9a9)",
+    gradient: "var(--clr-hero-bg-distributor)",
     icon: "🚚",
     actions: [
       { label: "My Products", path: "/products", icon: "📦" },
@@ -29,7 +29,7 @@ const ROLE_CONFIG = {
   },
   retailer: {
     label: "Retailer",
-    gradient: "linear-gradient(135deg, #f76707, #fcc419)",
+    gradient: "var(--clr-hero-bg-retailer)",
     icon: "🏪",
     actions: [
       { label: "My Products", path: "/products", icon: "📦" },
@@ -38,7 +38,7 @@ const ROLE_CONFIG = {
   },
   admin: {
     label: "Admin",
-    gradient: "linear-gradient(135deg, #ae3ec9, #e599f7)",
+    gradient: "var(--clr-hero-bg-admin)",
     icon: "🛡️",
     actions: [
       { label: "All Products", path: "/products", icon: "📦" },

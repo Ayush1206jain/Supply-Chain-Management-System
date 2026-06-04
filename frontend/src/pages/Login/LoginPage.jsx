@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import { loginUser } from "../../api/authService";
+import AuthLayout from "./AuthLayout";
 import "./Auth.css";
 
 export default function LoginPage() {
@@ -44,11 +45,7 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="auth-page">
-      {/* Background decoration */}
-      <div className="auth-bg-glow auth-bg-glow--1" />
-      <div className="auth-bg-glow auth-bg-glow--2" />
-
+    <AuthLayout>
       <div className="auth-card animate-scale-in" id="login-card">
         {/* Header */}
         <div className="auth-header">
@@ -118,6 +115,6 @@ export default function LoginPage() {
           </Link>
         </p>
       </div>
-    </div>
+    </AuthLayout>
   );
 }
