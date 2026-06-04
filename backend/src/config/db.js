@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+let _supportsTransactions = false;
 
 async function connectDB(uri) {
   if (!uri) {
@@ -7,6 +8,17 @@ async function connectDB(uri) {
 
   mongoose.set("strictQuery", true);
   await mongoose.connect(uri);
+
+  // Detect whether the connected server supports transactions (replica set)
+  try {
+    const info = await mongoose.connection.db.admin().command({ hello: 1 });
+    // replica set members expose a logicalSessionTimeoutMinutes value
+    _supportsTransactions = !!(
+      info.logicalSessionTimeoutMinutes && info.setName
+    );
+  } catch (err) {
+    _supportsTransactions = false;
+  }
 }
 
 function getDbStatus() {
@@ -22,4 +34,5 @@ function getDbStatus() {
 module.exports = {
   connectDB,
   getDbStatus,
+  supportsTransactions: () => _supportsTransactions,
 };
