@@ -49,10 +49,9 @@ export default function LoginPage() {
       <div className="auth-card animate-scale-in" id="login-card">
         {/* Header */}
         <div className="auth-header">
-          <span className="auth-logo">⛓</span>
           <h1 className="auth-title">Welcome back</h1>
           <p className="auth-subtitle">
-            Sign in to your ChainTrack account
+            Sign in to your BlockTrace account
           </p>
         </div>
 
