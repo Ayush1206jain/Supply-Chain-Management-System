@@ -4,12 +4,12 @@ const ThemeContext = createContext(null);
 
 export function ThemeProvider({ children }) {
   const [theme, setTheme] = useState(() => {
-    return localStorage.getItem("chaintrack-theme") || "dark";
+    return localStorage.getItem("blocktrace-theme") || "dark";
   });
 
   useEffect(() => {
     document.documentElement.setAttribute("data-theme", theme);
-    localStorage.setItem("chaintrack-theme", theme);
+    localStorage.setItem("blocktrace-theme", theme);
   }, [theme]);
 
   const toggleTheme = () =>

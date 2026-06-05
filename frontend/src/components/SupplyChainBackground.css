@@ -1,0 +1,191 @@
+/* ═══════════════════════════════════════════════════════════════════════
+   SupplyChainBackground Styling
+   ═══════════════════════════════════════════════════════════════════════ */
+
+.supply-chain-bg {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+  opacity: 1; /* Keep parent at 1 to prevent double-multiplication of child opacities */
+  color: var(--clr-primary-500); /* Matches the blue of the theme */
+  transition: opacity 0.3s ease;
+}
+
+.supply-chain-svg {
+  width: 100%;
+  height: 100%;
+  opacity: 1; /* Keep parent SVG at 1 so children can have independent opacities */
+}
+
+/* Connective Route Dash Offset Animation */
+.route-line {
+  fill: none;
+  stroke: var(--clr-text-dim);
+  stroke-width: 2.5;
+  stroke-dasharray: 8 10;
+  animation: routeDashFlow 30s linear infinite;
+  opacity: 0.18; /* Subtle route line in dark mode */
+}
+
+[data-theme="light"] .route-line {
+  opacity: 0.12; /* Subtle route line in light mode */
+}
+
+@keyframes routeDashFlow {
+  to {
+    stroke-dashoffset: -1000;
+  }
+}
+
+/* Node Icon graphics (paths, circles, lines inside node-group) */
+.node-group path,
+.node-group line,
+.node-group rect,
+.node-group circle {
+  opacity: 0.18; /* Subtle background icons in dark mode */
+}
+
+[data-theme="light"] .node-group path,
+[data-theme="light"] .node-group line,
+[data-theme="light"] .node-group rect,
+[data-theme="light"] .node-group circle {
+  opacity: 0.14; /* Subtle background icons in light mode */
+}
+
+/* Squared container node styles */
+.node-square-box {
+  fill: var(--clr-surface);
+  stroke: currentColor;
+  stroke-width: 1.5px;
+}
+
+[data-theme="light"] .node-square-box {
+  fill: #ffffff; /* Solid white background fill to pop on light backgrounds */
+}
+
+/* Node Text Labels - high contrast and darker color */
+.node-label {
+  fill: var(--clr-text-dim);
+  opacity: 0.85; /* Clearly visible in dark mode */
+  font-family: var(--font-family), sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  text-anchor: middle;
+  letter-spacing: 0.02em;
+}
+
+[data-theme="light"] .node-label {
+  fill: var(--clr-text); /* Renders as a very dark slate color (#0f172a) in light mode */
+  opacity: 0.75;
+}
+
+/* Package Node styling */
+.moving-package {
+  fill: var(--clr-accent-500); /* Accent green/teal for packages to stand out nicely */
+  color: var(--clr-accent-500);
+  opacity: 0.35; /* Keep packages visible but integrated */
+}
+
+[data-theme="light"] .moving-package {
+  fill: var(--clr-primary-600);
+  opacity: 0.28;
+}
+
+/* Floating SCM Icons Styling */
+.floating-icon {
+  position: absolute;
+  color: var(--clr-primary-500);
+  opacity: 0.1; /* Slightly higher opacity for visibility on dark theme */
+  pointer-events: none;
+  z-index: 0;
+  transition: opacity 0.3s ease;
+}
+
+[data-theme="light"] .floating-icon {
+  color: var(--clr-primary-400);
+  opacity: 0.08; /* Slightly higher opacity for visibility on light theme background */
+}
+
+/* Floating animation keyframes */
+@keyframes floatY {
+  0% {
+    transform: translateY(0px) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-15px) rotate(6deg);
+  }
+  100% {
+    transform: translateY(0px) rotate(0deg);
+  }
+}
+
+@keyframes floatYAlt {
+  0% {
+    transform: translateY(0px) rotate(0deg);
+  }
+  50% {
+    transform: translateY(12px) rotate(-8deg);
+  }
+  100% {
+    transform: translateY(0px) rotate(0deg);
+  }
+}
+
+/* Float timings and placement (using empty margin coordinates) */
+.float-1 {
+  top: 8%;
+  left: 18%;
+  animation: floatY 9s ease-in-out infinite;
+}
+
+.float-2 {
+  top: 28%;
+  left: 82%;
+  animation: floatYAlt 11s ease-in-out infinite;
+}
+
+.float-3 {
+  top: 62%;
+  left: 18%;
+  animation: floatYAlt 10s ease-in-out infinite;
+  animation-delay: 1s;
+}
+
+.float-4 {
+  top: 86%;
+  left: 28%;
+  animation: floatY 12s ease-in-out infinite;
+  animation-delay: 2s;
+}
+
+.float-5 {
+  top: 10%;
+  left: 82%;
+  animation: floatY 8s ease-in-out infinite;
+}
+
+.float-6 {
+  top: 55%;
+  left: 85%;
+  animation: floatYAlt 9.5s ease-in-out infinite;
+  animation-delay: 0.5s;
+}
+
+.float-7 {
+  top: 76%;
+  left: 84%;
+  animation: floatY 10.5s ease-in-out infinite;
+  animation-delay: 1.5s;
+}
+
+.float-8 {
+  top: 36%;
+  left: 15%;
+  animation: floatY 11.5s ease-in-out infinite;
+  animation-delay: 0.8s;
+}
+

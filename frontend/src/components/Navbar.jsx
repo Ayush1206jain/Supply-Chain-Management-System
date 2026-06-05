@@ -24,7 +24,7 @@ export default function Navbar() {
         {/* Brand */}
         <NavLink to="/" className="navbar-brand" id="navbar-brand">
           <span className="navbar-logo">⛓</span>
-          <span className="navbar-title">ChainTrack</span>
+          <span className="navbar-title">BlockTrace</span>
         </NavLink>
 
         {/* Links */}

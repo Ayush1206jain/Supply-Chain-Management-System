@@ -5,12 +5,15 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import LoginPage from "./pages/Login/LoginPage";
 import RegisterPage from "./pages/Login/RegisterPage";
 import DashboardPage from "./pages/Dashboard/DashboardPage";
+import ProductsPage from "./pages/Products/ProductsPage";
+import TransfersPage from "./pages/Transfers/TransfersPage";
 
 /**
  * Root application component.
  * – Public routes: /login, /register
  * – Protected routes: / (dashboard), /products, /transfers, /audit, /sync
- * – Day 14 will add Products, Transfers, Audit, Sync pages.
+ * – Day 14: Products and Transfers pages are now fully implemented.
+ * – Day 15 will add Audit and Sync pages.
  */
 export default function App() {
   const { isAuthenticated, loading } = useAuth();
@@ -51,28 +54,32 @@ export default function App() {
           }
         />
 
-        {/* Placeholder routes — wired up in Day 14 */}
+        {/* Day 14 — Products page */}
         <Route
           path="/products"
           element={
             <ProtectedRoute>
-              <PlaceholderPage title="Products" emoji="📦" />
+              <ProductsPage />
             </ProtectedRoute>
           }
         />
+
+        {/* Day 14 — Transfers page */}
         <Route
           path="/transfers"
           element={
             <ProtectedRoute>
-              <PlaceholderPage title="Transfers" emoji="🔄" />
+              <TransfersPage />
             </ProtectedRoute>
           }
         />
+
+        {/* Placeholder routes — wired up in Day 15 */}
         <Route
           path="/audit"
           element={
             <ProtectedRoute>
-              <PlaceholderPage title="Audit Trail" emoji="🔍" />
+              <PlaceholderPage title="Audit Trail" emoji="🔍" day={15} />
             </ProtectedRoute>
           }
         />
@@ -80,7 +87,7 @@ export default function App() {
           path="/sync"
           element={
             <ProtectedRoute>
-              <PlaceholderPage title="Sync Status" emoji="🔗" />
+              <PlaceholderPage title="Sync Status" emoji="🔗" day={15} />
             </ProtectedRoute>
           }
         />
@@ -93,9 +100,9 @@ export default function App() {
 }
 
 /**
- * Temporary placeholder for pages built in Day 14+.
+ * Temporary placeholder for pages built in Day 15+.
  */
-function PlaceholderPage({ title, emoji }) {
+function PlaceholderPage({ title, emoji, day }) {
   return (
     <div
       style={{
@@ -110,7 +117,7 @@ function PlaceholderPage({ title, emoji }) {
         {title}
       </h1>
       <p style={{ color: "var(--clr-text-dim)", marginTop: 8 }}>
-        This page will be implemented on Day 14.
+        This page will be implemented on Day {day}.
       </p>
     </div>
   );
