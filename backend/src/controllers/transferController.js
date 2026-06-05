@@ -1,5 +1,6 @@
 const mongoose = require("mongoose");
 const { Product, Transfer, User } = require("../models");
+const { supportsTransactions } = require("../config/db");
 const { transferOwnershipOnChain } = require("../utils/chainAdapter");
 
 async function createTransfer(req, res) {
@@ -12,7 +13,18 @@ async function createTransfer(req, res) {
     });
   }
 
-  const toUser = await User.findById(toUserId);
+  let toUser;
+  if (mongoose.isValidObjectId(toUserId)) {
+    toUser = await User.findById(toUserId);
+  } else if (typeof toUserId === "string" && toUserId.includes("@")) {
+    toUser = await User.findOne({ email: toUserId.toLowerCase().trim() });
+  } else {
+    return res.status(400).json({
+      success: false,
+      message: "toUserId must be a valid user id (24-char hex) or an email",
+    });
+  }
+
   if (!toUser) {
     return res.status(404).json({
       success: false,
@@ -45,58 +57,102 @@ async function createTransfer(req, res) {
     });
   }
 
-  const session = await mongoose.startSession();
-  try {
-    let createdTransfer;
+  // Prefer transactions when supported; otherwise use an atomic owner-check update
+  if (supportsTransactions()) {
+    const session = await mongoose.startSession();
+    try {
+      let createdTransfer;
 
-    await session.withTransaction(async () => {
-      createdTransfer = await Transfer.create(
-        [
-          {
-            product: product._id,
-            fromUser: actorId,
-            toUser: toUser._id,
-          },
-        ],
-        { session }
-      );
+      await session.withTransaction(async () => {
+        createdTransfer = await Transfer.create(
+          [
+            {
+              product: product._id,
+              fromUser: actorId,
+              toUser: toUser._id,
+            },
+          ],
+          { session },
+        );
 
-      product.owner = toUser._id;
-      await product.save({ session });
-    });
+        product.owner = toUser._id;
+        await product.save({ session });
+      });
 
-    const transfer = createdTransfer[0];
-    const updatedProduct = await Product.findById(product._id)
-      .populate("owner", "email role")
-      .populate("createdBy", "email role");
+      const transfer = createdTransfer[0];
+      const updatedProduct = await Product.findById(product._id)
+        .populate("owner", "email role")
+        .populate("createdBy", "email role");
 
-    // ── Day 9: record transfer on-chain ──────────────────────────────────
-    // Run after session closes so DB is already committed.
-    // Failure is non-fatal: syncStatus tracks it for Day 11 retries.
-    const txHash = await transferOwnershipOnChain(product, toUser._id);
+      const txHash = await transferOwnershipOnChain(product, toUser._id);
 
-    let syncStatus;
-    if (txHash) {
-      transfer.blockchainTxHash = txHash;
-      transfer.syncStatus = "confirmed";
-      syncStatus = "confirmed";
-    } else {
-      transfer.syncStatus = "failed";
-      syncStatus = "failed";
+      let syncStatus;
+      if (txHash) {
+        transfer.blockchainTxHash = txHash;
+        transfer.syncStatus = "confirmed";
+        syncStatus = "confirmed";
+      } else {
+        transfer.syncStatus = "failed";
+        syncStatus = "failed";
+      }
+      await transfer.save();
+
+      return res.status(201).json({
+        success: true,
+        message: "Ownership transferred successfully",
+        transfer,
+        product: updatedProduct,
+        blockchainSyncStatus: syncStatus,
+      });
+    } finally {
+      await session.endSession();
     }
-    await transfer.save();
-    // ─────────────────────────────────────────────────────────────────────
-
-    return res.status(201).json({
-      success: true,
-      message: "Ownership transferred successfully",
-      transfer,
-      product: updatedProduct,
-      blockchainSyncStatus: syncStatus,
-    });
-  } finally {
-    await session.endSession();
   }
+
+  // Fallback for standalone MongoDB: do an atomic owner-check & update, then create transfer
+  // This avoids transactions while still preventing a simple race on owner field.
+  const updatedProduct = await Product.findOneAndUpdate(
+    { _id: product._id, owner: actorId },
+    { owner: toUser._id },
+    { new: true },
+  );
+
+  if (!updatedProduct) {
+    return res.status(403).json({
+      success: false,
+      message: "Only current owner can transfer this product",
+    });
+  }
+
+  const transfer = await Transfer.create({
+    product: product._id,
+    fromUser: actorId,
+    toUser: toUser._id,
+  });
+
+  const txHash = await transferOwnershipOnChain(updatedProduct, toUser._id);
+  let syncStatus;
+  if (txHash) {
+    transfer.blockchainTxHash = txHash;
+    transfer.syncStatus = "confirmed";
+    syncStatus = "confirmed";
+  } else {
+    transfer.syncStatus = "failed";
+    syncStatus = "failed";
+  }
+  await transfer.save();
+
+  const populatedProduct = await Product.findById(product._id)
+    .populate("owner", "email role")
+    .populate("createdBy", "email role");
+
+  return res.status(201).json({
+    success: true,
+    message: "Ownership transferred successfully",
+    transfer,
+    product: populatedProduct,
+    blockchainSyncStatus: syncStatus,
+  });
 }
 
 async function listTransfersByProduct(req, res) {
@@ -126,4 +182,3 @@ module.exports = {
   createTransfer,
   listTransfersByProduct,
 };
-

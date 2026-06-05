@@ -60,10 +60,9 @@ export default function RegisterPage() {
       <div className="auth-card animate-scale-in" id="register-card">
         {/* Header */}
         <div className="auth-header">
-          <span className="auth-logo">⛓</span>
           <h1 className="auth-title">Create account</h1>
           <p className="auth-subtitle">
-            Join ChainTrack to manage your supply chain
+            Join BlockTrace to manage your supply chain
           </p>
         </div>
 

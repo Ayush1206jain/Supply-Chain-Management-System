@@ -6,53 +6,7 @@ import ThemeToggle from "../../components/ThemeToggle";
 /**
  * Interactive floating metric cards surrounding the central login card.
  */
-const METRIC_CARDS = [
-  {
-    id: "metric-tx",
-    icon: (
-      <svg className="metric-svg-icon icon-purple" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-        <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
-        <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
-      </svg>
-    ),
-    label: "12,450 Transactions",
-    posClass: "pos-rel-top-left"
-  },
-  {
-    id: "metric-products",
-    icon: (
-      <svg className="metric-svg-icon icon-orange" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-        <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" />
-        <polyline points="3.27 6.96 12 12.01 20.73 6.96" />
-        <line x1="12" y1="22.08" x2="12" y2="12" />
-      </svg>
-    ),
-    label: "5,230 Products Tracked",
-    posClass: "pos-rel-top-right"
-  },
-  {
-    id: "metric-countries",
-    icon: (
-      <svg className="metric-svg-icon icon-blue" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-        <circle cx="12" cy="12" r="10" />
-        <path d="M2 12h20" />
-        <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
-      </svg>
-    ),
-    label: "32 Countries",
-    posClass: "pos-rel-bottom-left"
-  },
-  {
-    id: "metric-integrity",
-    icon: (
-      <svg className="metric-svg-icon icon-green" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-      </svg>
-    ),
-    label: "99% Data Integrity",
-    posClass: "pos-rel-bottom-right"
-  }
-];
+
 
 export default function AuthLayout({ children }) {
   return (
@@ -111,8 +65,8 @@ export default function AuthLayout({ children }) {
             <circle r="48" fill="#1a1a2e" stroke="#7c3aed" strokeWidth="1.5" filter="drop-shadow(0 8px 20px rgba(139,92,246,0.15))" />
             <image href="/assets/icons/manufacturer.png" x="-44" y="-44" width="88" height="88" clipPath="url(#clip-manufacturer)" />
             <circle r="6" fill="#a78bfa" transform="translate(0, 56)" />
-            <text y="96" textAnchor="middle" fill="#e2e8f0" fontSize="17" fontWeight="700" fontFamily="Inter, sans-serif">Manufacturer</text>
-            <text y="116" textAnchor="middle" fill="#94a3b8" fontSize="13" fontWeight="500" fontFamily="Inter, sans-serif">Raw Materials &amp; Production</text>
+            <text y="96" textAnchor="middle" className="auth-svg-node-title" fontSize="17" fontWeight="700" fontFamily="Inter, sans-serif">Manufacturer</text>
+            <text y="116" textAnchor="middle" className="auth-svg-node-subtitle" fontSize="13" fontWeight="500" fontFamily="Inter, sans-serif">Raw Materials &amp; Production</text>
           </g>
 
           {/* Node 2: Warehouse */}
@@ -120,8 +74,8 @@ export default function AuthLayout({ children }) {
             <circle r="48" fill="#1a1a2e" stroke="#7c3aed" strokeWidth="1.5" filter="drop-shadow(0 8px 20px rgba(139,92,246,0.15))" />
             <image href="/assets/icons/warehouse.png" x="-44" y="-44" width="88" height="88" clipPath="url(#clip-warehouse)" />
             <circle r="6" fill="#a78bfa" transform="translate(0, 56)" />
-            <text y="96" textAnchor="middle" fill="#e2e8f0" fontSize="17" fontWeight="700" fontFamily="Inter, sans-serif">Warehouse</text>
-            <text y="116" textAnchor="middle" fill="#94a3b8" fontSize="13" fontWeight="500" fontFamily="Inter, sans-serif">Storage &amp; Inventory</text>
+            <text y="96" textAnchor="middle" className="auth-svg-node-title" fontSize="17" fontWeight="700" fontFamily="Inter, sans-serif">Warehouse</text>
+            <text y="116" textAnchor="middle" className="auth-svg-node-subtitle" fontSize="13" fontWeight="500" fontFamily="Inter, sans-serif">Storage &amp; Inventory</text>
           </g>
 
           {/* Node 3: Distributor */}
@@ -129,8 +83,8 @@ export default function AuthLayout({ children }) {
             <circle r="48" fill="#1a1a2e" stroke="#7c3aed" strokeWidth="1.5" filter="drop-shadow(0 8px 20px rgba(139,92,246,0.15))" />
             <image href="/assets/icons/distributor.png" x="-44" y="-44" width="88" height="88" clipPath="url(#clip-distributor)" />
             <circle r="6" fill="#a78bfa" transform="translate(0, 56)" />
-            <text y="96" textAnchor="middle" fill="#e2e8f0" fontSize="17" fontWeight="700" fontFamily="Inter, sans-serif">Distributor</text>
-            <text y="116" textAnchor="middle" fill="#94a3b8" fontSize="13" fontWeight="500" fontFamily="Inter, sans-serif">Transportation &amp; Distribution</text>
+            <text y="96" textAnchor="middle" className="auth-svg-node-title" fontSize="17" fontWeight="700" fontFamily="Inter, sans-serif">Distributor</text>
+            <text y="116" textAnchor="middle" className="auth-svg-node-subtitle" fontSize="13" fontWeight="500" fontFamily="Inter, sans-serif">Transportation &amp; Distribution</text>
           </g>
 
           {/* Node 4: Retailer */}
@@ -138,8 +92,8 @@ export default function AuthLayout({ children }) {
             <circle r="48" fill="#1a1a2e" stroke="#7c3aed" strokeWidth="1.5" filter="drop-shadow(0 8px 20px rgba(139,92,246,0.15))" />
             <image href="/assets/icons/retailer.png" x="-44" y="-44" width="88" height="88" clipPath="url(#clip-retailer)" />
             <circle r="6" fill="#a78bfa" transform="translate(0, 56)" />
-            <text y="96" textAnchor="middle" fill="#e2e8f0" fontSize="17" fontWeight="700" fontFamily="Inter, sans-serif">Retailer</text>
-            <text y="116" textAnchor="middle" fill="#94a3b8" fontSize="13" fontWeight="500" fontFamily="Inter, sans-serif">Sales &amp; Fulfillment</text>
+            <text y="96" textAnchor="middle" className="auth-svg-node-title" fontSize="17" fontWeight="700" fontFamily="Inter, sans-serif">Retailer</text>
+            <text y="116" textAnchor="middle" className="auth-svg-node-subtitle" fontSize="13" fontWeight="500" fontFamily="Inter, sans-serif">Sales &amp; Fulfillment</text>
           </g>
 
           {/* Node 5: Customer */}
@@ -147,8 +101,8 @@ export default function AuthLayout({ children }) {
             <circle r="48" fill="#1a1a2e" stroke="#7c3aed" strokeWidth="1.5" filter="drop-shadow(0 8px 20px rgba(139,92,246,0.15))" />
             <image href="/assets/icons/customer.png" x="-44" y="-44" width="88" height="88" clipPath="url(#clip-customer)" />
             <circle r="6" fill="#a78bfa" transform="translate(0, 56)" />
-            <text y="96" textAnchor="middle" fill="#e2e8f0" fontSize="17" fontWeight="700" fontFamily="Inter, sans-serif">Customer</text>
-            <text y="116" textAnchor="middle" fill="#94a3b8" fontSize="13" fontWeight="500" fontFamily="Inter, sans-serif">End User Delivery</text>
+            <text y="96" textAnchor="middle" className="auth-svg-node-title" fontSize="17" fontWeight="700" fontFamily="Inter, sans-serif">Customer</text>
+            <text y="116" textAnchor="middle" className="auth-svg-node-subtitle" fontSize="13" fontWeight="500" fontFamily="Inter, sans-serif">End User Delivery</text>
           </g>
 
           {/* Floating abstract structure cubes */}
@@ -280,19 +234,24 @@ export default function AuthLayout({ children }) {
       </div>
 
       {/* Central Login / Register Card Container Slot */}
-      <div className="auth-center-wrapper">
-        {/* Floating statistics cards placed RELATIVE to the login card */}
-        <div className="relative-metrics-container">
-          {METRIC_CARDS.map((card) => (
-            <div key={card.id} id={card.id} className={`floating-stat-card glass-stat ${card.posClass}`}>
-              <span className="stat-svg-wrapper">{card.icon}</span>
-              <span className="stat-text">{card.label}</span>
-            </div>
-          ))}
+      <div className="auth-main-content">
+        {/* Top Brand Name */}
+        <div className="auth-outer-brand animate-fade-in">
+          <span className="auth-logo">⛓</span>
+          <span className="auth-outer-brand-name">BlockTrace</span>
         </div>
-        
-        {/* Render Form Card */}
-        {children}
+
+        <h1 className="auth-outer-tagline animate-fade-in">
+          From Factory to Customer
+          <span className="tagline-gradient tagline-sub-block">Verify At Every Step</span>
+        </h1>
+
+        <div className="auth-center-wrapper">
+
+          
+          {/* Render Form Card */}
+          {children}
+        </div>
       </div>
     </div>
   );
