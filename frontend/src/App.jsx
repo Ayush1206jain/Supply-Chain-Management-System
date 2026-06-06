@@ -7,13 +7,15 @@ import RegisterPage from "./pages/Login/RegisterPage";
 import DashboardPage from "./pages/Dashboard/DashboardPage";
 import ProductsPage from "./pages/Products/ProductsPage";
 import TransfersPage from "./pages/Transfers/TransfersPage";
+import AuditPage from "./pages/Audit/AuditPage";
+import SyncPage from "./pages/Sync/SyncPage";
 
 /**
  * Root application component.
  * – Public routes: /login, /register
  * – Protected routes: / (dashboard), /products, /transfers, /audit, /sync
- * – Day 14: Products and Transfers pages are now fully implemented.
- * – Day 15 will add Audit and Sync pages.
+ * – Day 14: Products and Transfers pages are fully implemented.
+ * – Day 15: Audit Trail and Sync Status pages are fully implemented.
  */
 export default function App() {
   const { isAuthenticated, loading } = useAuth();
@@ -74,20 +76,22 @@ export default function App() {
           }
         />
 
-        {/* Placeholder routes — wired up in Day 15 */}
+        {/* Day 15 — Audit Trail page */}
         <Route
           path="/audit"
           element={
             <ProtectedRoute>
-              <PlaceholderPage title="Audit Trail" emoji="🔍" day={15} />
+              <AuditPage />
             </ProtectedRoute>
           }
         />
+
+        {/* Day 15 — Sync Status panel */}
         <Route
           path="/sync"
           element={
             <ProtectedRoute>
-              <PlaceholderPage title="Sync Status" emoji="🔗" day={15} />
+              <SyncPage />
             </ProtectedRoute>
           }
         />
@@ -96,29 +100,5 @@ export default function App() {
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </>
-  );
-}
-
-/**
- * Temporary placeholder for pages built in Day 15+.
- */
-function PlaceholderPage({ title, emoji, day }) {
-  return (
-    <div
-      style={{
-        maxWidth: 800,
-        margin: "60px auto",
-        padding: "0 24px",
-        textAlign: "center",
-      }}
-    >
-      <span style={{ fontSize: "3rem" }}>{emoji}</span>
-      <h1 style={{ fontSize: "1.5rem", fontWeight: 700, marginTop: 12 }}>
-        {title}
-      </h1>
-      <p style={{ color: "var(--clr-text-dim)", marginTop: 8 }}>
-        This page will be implemented on Day {day}.
-      </p>
-    </div>
   );
 }
