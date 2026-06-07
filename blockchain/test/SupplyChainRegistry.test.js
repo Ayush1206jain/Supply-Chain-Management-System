@@ -5,11 +5,11 @@ describe("SupplyChainRegistry", function () {
   // ─── fixture ─────────────────────────────────────────────────────────────
 
   async function deployFixture() {
-    const [owner, alice, bob] = await ethers.getSigners();
+    const [owner, alice, bob, carol] = await ethers.getSigners();
     const Factory = await ethers.getContractFactory("SupplyChainRegistry");
     const registry = await Factory.deploy();
     await registry.waitForDeployment();
-    return { registry, owner, alice, bob };
+    return { registry, owner, alice, bob, carol };
   }
 
   // Helper: create a valid productId and contentHash pair
@@ -20,6 +20,9 @@ describe("SupplyChainRegistry", function () {
     );
     return { productId, contentHash };
   }
+
+  // Status enum mapping (mirrors Solidity enum)
+  const STATUS = { CREATED: 0, IN_TRANSIT: 1, DELIVERED: 2, DISPUTED: 3 };
 
   // ─── deployment ───────────────────────────────────────────────────────────
 
@@ -45,8 +48,6 @@ describe("SupplyChainRegistry", function () {
       await expect(tx)
         .to.emit(registry, "ProductRegistered")
         .withArgs(productId, contentHash, owner.address, block.timestamp);
-
-      // Just check event is emitted without strict timestamp arg
     });
 
     it("stores contentHash and caller as owner", async function () {
@@ -60,7 +61,7 @@ describe("SupplyChainRegistry", function () {
 
       expect(storedHash).to.equal(contentHash);
       expect(storedOwner).to.equal(owner.address);
-      expect(registeredAt).to.be.gt(0n); // non-zero timestamp
+      expect(registeredAt).to.be.gt(0n);
     });
 
     it("reverts when productId is zero bytes32", async function () {
@@ -109,7 +110,7 @@ describe("SupplyChainRegistry", function () {
     });
   });
 
-  // ─── transferOwnership ────────────────────────────────────────────────────
+  // ─── transferOwnership (original — backward compat) ───────────────────────
 
   describe("transferOwnership", function () {
     it("transfers ownership and emits OwnershipTransferred event", async function () {
@@ -132,7 +133,6 @@ describe("SupplyChainRegistry", function () {
       await registry.registerProduct(productId, contentHash);
       await registry.transferOwnership(productId, alice.address);
 
-      // owner (original) tries to transfer again → should fail
       await expect(
         registry.transferOwnership(productId, bob.address)
       ).to.be.revertedWith("not owner");
@@ -144,8 +144,6 @@ describe("SupplyChainRegistry", function () {
 
       await registry.registerProduct(productId, contentHash);
       await registry.transferOwnership(productId, alice.address);
-
-      // alice transfers to bob
       await registry.connect(alice).transferOwnership(productId, bob.address);
 
       const [, finalOwner] = await registry.getProduct(productId);
@@ -206,6 +204,187 @@ describe("SupplyChainRegistry", function () {
 
       const [, , registeredAt] = await registry.getProduct(productId);
       expect(Number(registeredAt)).to.equal(block.timestamp);
+    });
+  });
+
+  // ─── NEW: ProductStatus enum ──────────────────────────────────────────────
+
+  describe("ProductStatus enum", function () {
+    it("status should be CREATED (0) after registerProduct", async function () {
+      const { registry } = await deployFixture();
+      const { productId, contentHash } = makeIds("STATUS-001");
+
+      await registry.registerProduct(productId, contentHash);
+      const [, , , status] = await registry.getProduct(productId);
+      expect(Number(status)).to.equal(STATUS.CREATED);
+    });
+
+    it("status should be IN_TRANSIT (1) after initiateTransfer", async function () {
+      const { registry, owner, alice } = await deployFixture();
+      const { productId, contentHash } = makeIds("STATUS-002");
+
+      await registry.registerProduct(productId, contentHash);
+      await registry.initiateTransfer(productId, alice.address);
+
+      const [, , , status] = await registry.getProduct(productId);
+      expect(Number(status)).to.equal(STATUS.IN_TRANSIT);
+    });
+
+    it("status should be DELIVERED (2) after confirmTransfer", async function () {
+      const { registry, owner, alice } = await deployFixture();
+      const { productId, contentHash } = makeIds("STATUS-003");
+
+      await registry.registerProduct(productId, contentHash);
+      await registry.initiateTransfer(productId, alice.address);
+      await registry.connect(alice).confirmTransfer(productId);
+
+      const [, , , status] = await registry.getProduct(productId);
+      expect(Number(status)).to.equal(STATUS.DELIVERED);
+    });
+
+    it("status should be DISPUTED (3) after flagDispute", async function () {
+      const { registry } = await deployFixture();
+      const { productId, contentHash } = makeIds("STATUS-004");
+
+      await registry.registerProduct(productId, contentHash);
+      await registry.flagDispute(productId);
+
+      const [, , , status] = await registry.getProduct(productId);
+      expect(Number(status)).to.equal(STATUS.DISPUTED);
+    });
+  });
+
+  // ─── NEW: Multi-sig transfer ──────────────────────────────────────────────
+
+  describe("Multi-sig transfer", function () {
+    it("initiateTransfer emits TransferInitiated and sets status IN_TRANSIT", async function () {
+      const { registry, owner, alice } = await deployFixture();
+      const { productId, contentHash } = makeIds("MSIG-001");
+
+      await registry.registerProduct(productId, contentHash);
+
+      // Check the event is emitted (without strict timestamp assertion — block time is non-deterministic)
+      const tx = await registry.initiateTransfer(productId, alice.address);
+      await expect(tx).to.emit(registry, "TransferInitiated");
+
+      // Confirm status moved to IN_TRANSIT
+      const [, , , status] = await registry.getProduct(productId);
+      expect(Number(status)).to.equal(STATUS.IN_TRANSIT);
+    });
+
+    it("confirmTransfer changes owner to receiver and emits TransferConfirmed", async function () {
+      const { registry, owner, alice } = await deployFixture();
+      const { productId, contentHash } = makeIds("MSIG-002");
+
+      await registry.registerProduct(productId, contentHash);
+      await registry.initiateTransfer(productId, alice.address);
+
+      await expect(registry.connect(alice).confirmTransfer(productId))
+        .to.emit(registry, "TransferConfirmed");
+
+      const [, newOwner, , status] = await registry.getProduct(productId);
+      expect(newOwner).to.equal(alice.address);
+      expect(Number(status)).to.equal(STATUS.DELIVERED);
+    });
+
+    it("confirmTransfer reverts if called by wrong address (not intended receiver)", async function () {
+      const { registry, owner, alice, bob } = await deployFixture();
+      const { productId, contentHash } = makeIds("MSIG-003");
+
+      await registry.registerProduct(productId, contentHash);
+      await registry.initiateTransfer(productId, alice.address);
+
+      // bob tries to confirm — not the intended receiver
+      await expect(
+        registry.connect(bob).confirmTransfer(productId)
+      ).to.be.revertedWith("not the intended receiver");
+    });
+
+    it("initiateTransfer reverts if caller is not the owner", async function () {
+      const { registry, owner, alice, bob } = await deployFixture();
+      const { productId, contentHash } = makeIds("MSIG-004");
+
+      await registry.registerProduct(productId, contentHash);
+
+      // alice is not the owner
+      await expect(
+        registry.connect(alice).initiateTransfer(productId, bob.address)
+      ).to.be.revertedWith("not owner");
+    });
+
+    it("second initiateTransfer reverts if one is already pending", async function () {
+      const { registry, owner, alice, bob } = await deployFixture();
+      const { productId, contentHash } = makeIds("MSIG-005");
+
+      await registry.registerProduct(productId, contentHash);
+      await registry.initiateTransfer(productId, alice.address);
+
+      // trying to initiate again before confirmation
+      await expect(
+        registry.initiateTransfer(productId, bob.address)
+      ).to.be.revertedWith("transfer already pending");
+    });
+
+    it("getPendingTransfer returns correct data after initiation", async function () {
+      const { registry, owner, alice } = await deployFixture();
+      const { productId, contentHash } = makeIds("MSIG-006");
+
+      await registry.registerProduct(productId, contentHash);
+      await registry.initiateTransfer(productId, alice.address);
+
+      const [from, to, , exists] = await registry.getPendingTransfer(productId);
+      expect(from).to.equal(owner.address);
+      expect(to).to.equal(alice.address);
+      expect(exists).to.be.true;
+    });
+
+    it("getPendingTransfer returns exists=false after confirmTransfer", async function () {
+      const { registry, owner, alice } = await deployFixture();
+      const { productId, contentHash } = makeIds("MSIG-007");
+
+      await registry.registerProduct(productId, contentHash);
+      await registry.initiateTransfer(productId, alice.address);
+      await registry.connect(alice).confirmTransfer(productId);
+
+      const [, , , exists] = await registry.getPendingTransfer(productId);
+      expect(exists).to.be.false;
+    });
+
+    it("confirmTransfer reverts when no pending transfer exists", async function () {
+      const { registry, alice } = await deployFixture();
+      const { productId, contentHash } = makeIds("MSIG-008");
+
+      await registry.registerProduct(productId, contentHash);
+
+      await expect(
+        registry.connect(alice).confirmTransfer(productId)
+      ).to.be.revertedWith("no pending transfer");
+    });
+  });
+
+  // ─── NEW: Dispute flag ────────────────────────────────────────────────────
+
+  describe("flagDispute", function () {
+    it("sets status to DISPUTED and emits DisputeRaised", async function () {
+      const { registry, owner } = await deployFixture();
+      const { productId, contentHash } = makeIds("DISPUTE-001");
+
+      await registry.registerProduct(productId, contentHash);
+
+      await expect(registry.flagDispute(productId))
+        .to.emit(registry, "DisputeRaised");
+
+      const [, , , status] = await registry.getProduct(productId);
+      expect(Number(status)).to.equal(STATUS.DISPUTED);
+    });
+
+    it("reverts flagDispute for unknown product", async function () {
+      const { registry } = await deployFixture();
+      const { productId } = makeIds("DISPUTE-GHOST");
+
+      await expect(
+        registry.flagDispute(productId)
+      ).to.be.revertedWith("unknown product");
     });
   });
 });
