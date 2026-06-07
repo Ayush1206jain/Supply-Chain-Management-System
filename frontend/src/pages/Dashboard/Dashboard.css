@@ -242,13 +242,13 @@
   position: absolute;
   width: 95px;
   height: auto;
-  opacity: 0.65; /* Increased from 0.15 to make them clearly visible and bright in dark mode */
+  opacity: 1.0; /* Fully visible in dark mode */
   transition: opacity 0.3s ease;
   filter: drop-shadow(0 8px 16px rgba(0, 0, 0, 0.08));
 }
 
 [data-theme="light"] .decor-icon {
-  opacity: 0.55; /* Increased from 0.12 to make them brighter in light mode */
+  opacity: 1.0; /* Fully visible in light mode */
   filter: drop-shadow(0 8px 24px rgba(0, 0, 0, 0.05));
 }
 
@@ -280,25 +280,25 @@
 /* Placed in the empty margins around the 1100px central dashboard card layout */
 .decor-box {
   top: 22%;
-  left: 6%;
+  left: 3.5%;
   animation: float3D_1 8s ease-in-out infinite;
 }
 
 .decor-pointer {
   top: 26%;
-  right: 6%;
+  right: 3.5%;
   animation: float3D_2 9.5s ease-in-out infinite;
 }
 
 .decor-truck {
   bottom: 12%;
-  left: 5%;
+  left: 3%;
   animation: float3D_2 11s ease-in-out infinite;
 }
 
 .decor-checklist {
   bottom: 15%;
-  right: 7%;
+  right: 3.5%;
   animation: float3D_1 10s ease-in-out infinite;
 }
 

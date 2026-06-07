@@ -87,164 +87,80 @@ export default function SupplyChainBackground() {
 
       {/* ── SVG Logistics Network ── */}
       <svg
-        viewBox="0 0 1000 1000"
+        viewBox="0 0 1800 1000"
         width="100%"
         height="100%"
-        preserveAspectRatio="none"
+        preserveAspectRatio="xMidYMid meet"
         className="supply-chain-svg"
       >
         {/* Animated Dashed Connection Line */}
         <path
-          d="M 80,150 L 80,450 L 80,800 L 920,800 L 920,450 L 920,150"
+          d="M -30,150 L -30,500 L -30,850 L 1830,850 L 1830,500 L 1830,150"
           className="route-line"
         />
 
-        {/* Node 1: Factory (80, 150) */}
+        {/* Node 1: Factory (-30, 150) */}
         <g className="node-group node-factory">
-          <g transform="translate(80, 150)">
-            {/* Squared Container outline */}
-            <rect x="-22" y="-22" width="44" height="44" rx="6" className="node-square-box" />
-            <g transform="scale(1.1)">
-              <path
-                d="M-12,12 V-2 L-4,-6 V-2 L4,-6 V-2 L12,-6 V12 Z"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="1.8"
-                strokeLinejoin="round"
-              />
-              <line x1="-12" y1="12" x2="12" y2="12" stroke="currentColor" strokeWidth="1.8" />
-              <line x1="-6" y1="4" x2="-2" y2="4" stroke="currentColor" strokeWidth="1.8" />
-              <line x1="-6" y1="8" x2="-2" y2="8" stroke="currentColor" strokeWidth="1.8" />
-              <line x1="2" y1="4" x2="6" y2="4" stroke="currentColor" strokeWidth="1.8" />
-              <line x1="2" y1="8" x2="6" y2="8" stroke="currentColor" strokeWidth="1.8" />
-            </g>
+          <g transform="translate(-30, 150)">
+            <image href="/assets/icons/manufacturer.png" x="-45" y="-45" width="90" height="90" />
           </g>
-          <text x="80" y="200" className="node-label">Factory</text>
+          <text x="-30" y="220" className="node-label">Factory</text>
         </g>
 
-        {/* Node 2: Warehouse (80, 450) */}
+        {/* Node 2: Warehouse (-30, 500) */}
         <g className="node-group node-warehouse">
-          <g transform="translate(80, 450)">
-            {/* Squared Container outline */}
-            <rect x="-22" y="-22" width="44" height="44" rx="6" className="node-square-box" />
-            <g transform="scale(1.1)">
-              <path
-                d="M-14,10 V-4 L0,-12 L14,-4 V10 Z"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="1.8"
-                strokeLinejoin="round"
-              />
-              <path
-                d="M-6,10 V4 H6 V10"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="1.8"
-                strokeLinejoin="round"
-              />
-              <line x1="-14" y1="10" x2="14" y2="10" stroke="currentColor" strokeWidth="1.8" />
-              <line x1="0" y1="-12" x2="0" y2="10" stroke="currentColor" strokeWidth="0.8" strokeDasharray="2,2" />
-            </g>
+          <g transform="translate(-30, 500)">
+            <image href="/assets/icons/warehouse.png" x="-55" y="-55" width="110" height="110" />
           </g>
-          <text x="80" y="500" className="node-label">Warehouse</text>
+          <text x="-30" y="575" className="node-label">Warehouse</text>
         </g>
 
-        {/* Node 3: Truck/Transport Hub (80, 800) */}
+        {/* Node 3: Logistics Hub (-30, 850) */}
         <g className="node-group node-truck">
-          <g transform="translate(80, 800)">
-            {/* Squared Container outline */}
-            <rect x="-22" y="-22" width="44" height="44" rx="6" className="node-square-box" />
-            <g transform="scale(1.1)">
-              <path
-                d="M-14,6 V-8 H2 L8,-2 V6 Z"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="1.8"
-                strokeLinejoin="round"
-              />
-              <line x1="2" y1="-8" x2="2" y2="6" stroke="currentColor" strokeWidth="1.8" />
-              <circle cx="-6" cy="9" r="2.5" fill="none" stroke="currentColor" strokeWidth="1.8" />
-              <circle cx="5" cy="9" r="2.5" fill="none" stroke="currentColor" strokeWidth="1.8" />
-              <line x1="-14" y1="6" x2="-8.5" y2="6" stroke="currentColor" strokeWidth="1.8" />
-              <line x1="-3.5" y1="6" x2="2" y2="6" stroke="currentColor" strokeWidth="1.8" />
-            </g>
+          <g transform="translate(-30, 850)">
+            <image href="/assets/icons/logistic_hub.png" x="-45" y="-45" width="90" height="90" />
           </g>
-          <text x="80" y="850" className="node-label">Logistics Hub</text>
+          <text x="-30" y="920" className="node-label">Logistics Hub</text>
         </g>
 
-        {/* Node 4: Distribution Center (920, 800) */}
+        {/* Node 4: Distribution Center (1830, 850) */}
         <g className="node-group node-dc">
-          <g transform="translate(920, 800)">
-            {/* Squared Container outline */}
-            <rect x="-22" y="-22" width="44" height="44" rx="6" className="node-square-box" />
-            <g transform="scale(1.1)">
-              <path
-                d="M-12,10 V-6 H12 V10 Z"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="1.8"
-                strokeLinejoin="round"
-              />
-              <path d="M-15,-6 H15" stroke="currentColor" strokeWidth="1.8" />
-              <circle cx="0" cy="2" r="4.5" fill="none" stroke="currentColor" strokeWidth="1.3" />
-              <line x1="-4.5" y1="2" x2="4.5" y2="2" stroke="currentColor" strokeWidth="1.3" />
-              <line x1="0" y1="-2.5" x2="0" y2="6.5" stroke="currentColor" strokeWidth="1.3" />
-            </g>
+          <g transform="translate(1830, 850)">
+            <image href="/assets/icons/distribution_center.png" x="-45" y="-45" width="90" height="90" />
           </g>
-          <text x="920" y="850" className="node-label">Dist. Center</text>
+          <text x="1830" y="920" className="node-label">Distribution centers</text>
         </g>
 
-        {/* Node 5: Retailer (920, 450) */}
+        {/* Node 5: Retailer (1830, 500) */}
         <g className="node-group node-retail">
-          <g transform="translate(920, 450)">
-            {/* Squared Container outline */}
-            <rect x="-22" y="-22" width="44" height="44" rx="6" className="node-square-box" />
-            <g transform="scale(1.1)">
-              <path
-                d="M-12,10 V-2 L-14,-6 L0,-10 L14,-6 L12,-2 V10 Z"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="1.8"
-                strokeLinejoin="round"
-              />
-              <path d="M-14,-6 H14" stroke="currentColor" strokeWidth="1.8" />
-              <rect x="-4" y="4" width="8" height="6" fill="none" stroke="currentColor" strokeWidth="1.8" />
-              <line x1="-7" y1="-6" x2="-7" y2="-2" stroke="currentColor" strokeWidth="1.3" />
-              <line x1="0" y1="-10" x2="0" y2="-2" stroke="currentColor" strokeWidth="1.3" />
-              <line x1="7" y1="-6" x2="7" y2="-2" stroke="currentColor" strokeWidth="1.3" />
-            </g>
+          <g transform="translate(1830, 500)">
+            <image href="/assets/icons/retailer.png" x="-45" y="-45" width="90" height="90" />
           </g>
-          <text x="920" y="500" className="node-label">Retail Store</text>
+          <text x="1830" y="570" className="node-label">Retail Store</text>
         </g>
 
-        {/* Node 6: Customer (920, 150) */}
+        {/* Node 6: Customer (1830, 150) */}
         <g className="node-group node-customer">
-          <g transform="translate(920, 150)">
-            {/* Squared Container outline */}
-            <rect x="-22" y="-22" width="44" height="44" rx="6" className="node-square-box" />
-            <g transform="scale(1.1)">
-              <path
-                d="M-12,-10 H-8 L-4,2 H8 L12,-6 H-2"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="1.8"
-                strokeLinejoin="round"
-                strokeLinecap="round"
-              />
-              <circle cx="-2" cy="7" r="2" fill="none" stroke="currentColor" strokeWidth="1.8" />
-              <circle cx="6" cy="7" r="2" fill="none" stroke="currentColor" strokeWidth="1.8" />
-            </g>
+          <g transform="translate(1830, 150)">
+            <image href="/assets/icons/customer.png" x="-45" y="-45" width="90" height="90" />
           </g>
-          <text x="920" y="200" className="node-label">Customer</text>
+          <text x="1830" y="220" className="node-label">Customer</text>
         </g>
 
-        {/* Moving Package 1 */}
-        <g className="moving-package">
-          <rect x="-6" y="-6" width="12" height="12" rx="1.5" />
+        {/* Moving Truck 1 */}
+        <g className="moving-truck">
+          <image
+            href="/assets/icons/truck.png"
+            x="-30"
+            y="-30"
+            width="60"
+            height="60"
+          />
           <animateMotion
-            path="M 80,150 L 80,450 L 80,800 L 920,800 L 920,450 L 920,150"
+            path="M -30,150 L -30,500 L -30,850 L 1830,850 L 1830,500 L 1830,150"
             dur="24s"
             repeatCount="indefinite"
+            rotate="auto"
             begin="0s"
           />
         </g>
@@ -253,20 +169,27 @@ export default function SupplyChainBackground() {
         <g className="moving-package">
           <rect x="-6" y="-6" width="12" height="12" rx="1.5" />
           <animateMotion
-            path="M 80,150 L 80,450 L 80,800 L 920,800 L 920,450 L 920,150"
+            path="M -30,150 L -30,500 L -30,850 L 1830,850 L 1830,500 L 1830,150"
             dur="24s"
             repeatCount="indefinite"
             begin="6s"
           />
         </g>
 
-        {/* Moving Package 3 */}
-        <g className="moving-package">
-          <rect x="-6" y="-6" width="12" height="12" rx="1.5" />
+        {/* Moving Truck 2 */}
+        <g className="moving-truck">
+          <image
+            href="/assets/icons/truck.png"
+            x="-30"
+            y="-30"
+            width="60"
+            height="60"
+          />
           <animateMotion
-            path="M 80,150 L 80,450 L 80,800 L 920,800 L 920,450 L 920,150"
+            path="M -30,150 L -30,500 L -30,850 L 1830,850 L 1830,500 L 1830,150"
             dur="24s"
             repeatCount="indefinite"
+            rotate="auto"
             begin="12s"
           />
         </g>
@@ -275,7 +198,7 @@ export default function SupplyChainBackground() {
         <g className="moving-package">
           <rect x="-6" y="-6" width="12" height="12" rx="1.5" />
           <animateMotion
-            path="M 80,150 L 80,450 L 80,800 L 920,800 L 920,450 L 920,150"
+            path="M -30,150 L -30,500 L -30,850 L 1830,850 L 1830,500 L 1830,150"
             dur="24s"
             repeatCount="indefinite"
             begin="18s"

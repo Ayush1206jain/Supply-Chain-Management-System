@@ -140,10 +140,10 @@ export default function DashboardPage() {
       {/* Floating 3D SCM Illustrations for Manufacturer Role */}
       {user?.role === "manufacturer" && (
         <div className="manufacturing-decorations" aria-hidden="true">
-          <img src="/assets/icons/box_3d.png" alt="Box" className="decor-icon decor-box" />
-          <img src="/assets/icons/pointer_3d.png" alt="Pointer" className="decor-icon decor-pointer" />
-          <img src="/assets/icons/truck_3d.png" alt="Truck" className="decor-icon decor-truck" />
-          <img src="/assets/icons/checklist_3d.png" alt="Checklist" className="decor-icon decor-checklist" />
+          <img src="/assets/icons/parcel.png" alt="Box" className="decor-icon decor-box" />
+          <img src="/assets/icons/location.png" alt="Pointer" className="decor-icon decor-pointer" />
+          <img src="/assets/icons/truck.png" alt="Truck" className="decor-icon decor-truck" />
+          <img src="/assets/icons/checklist.png" alt="Checklist" className="decor-icon decor-checklist" />
         </div>
       )}
     </div>

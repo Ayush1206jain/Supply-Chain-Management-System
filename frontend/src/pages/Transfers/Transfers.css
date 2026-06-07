@@ -4,12 +4,20 @@
 
 /* ── Page layout ─────────────────────────────────────────────────────── */
 .transfers-page {
-  max-width: 900px;
+  max-width: 1200px;
   margin: 0 auto;
-  padding: 32px 24px 64px;
+  padding: 24px 24px 72px; /* Bottom padding for tagline capsule */
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  position: relative;
+  z-index: 1;
 }
 
 .transfers-title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
   font-size: var(--font-size-3xl);
   font-weight: 800;
   letter-spacing: -0.02em;
@@ -17,7 +25,16 @@
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
-  margin-bottom: 32px;
+  margin-bottom: 20px;
+  flex-shrink: 0;
+}
+
+.title-icon-svg {
+  width: 32px;
+  height: 32px;
+  color: var(--clr-primary);
+  flex-shrink: 0;
+  filter: drop-shadow(0 2px 8px rgba(var(--clr-primary-rgb), 0.2));
 }
 
 /* ── Transfer form panel ─────────────────────────────────────────────── */
@@ -25,8 +42,8 @@
   background: var(--clr-surface);
   border: 1px solid var(--clr-border);
   border-radius: var(--radius-xl);
-  padding: 28px;
-  margin-bottom: 36px;
+  padding: 20px;
+  margin-bottom: 0; /* Handled by layout columns */
   box-shadow: var(--shadow-md);
   animation: slideUp 0.4s var(--ease-spring) both;
 }
@@ -35,7 +52,7 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  margin-bottom: 24px;
+  margin-bottom: 16px;
 }
 
 .transfer-panel-icon {
@@ -71,7 +88,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 20px;
+  margin-bottom: 14px;
 }
 
 .history-section-title {
@@ -220,14 +237,14 @@
 /* ── Empty / loading states ──────────────────────────────────────────── */
 .transfers-empty {
   text-align: center;
-  padding: 48px 24px;
+  padding: 24px 16px;
   color: var(--clr-text-dim);
 }
 
 .transfers-empty-icon {
-  font-size: 2.5rem;
+  font-size: 2rem;
   display: block;
-  margin-bottom: 10px;
+  margin-bottom: 8px;
 }
 
 /* ── Role restriction notice ─────────────────────────────────────────── */
@@ -242,15 +259,247 @@
   color: var(--clr-text-dim);
 }
 
-/* ── Responsive ──────────────────────────────────────────────────────── */
-@media (max-width: 640px) {
-  .transfer-form-row {
-    grid-template-columns: 1fr;
+/* ── Layout grid & columns ── */
+.transfers-content-layout {
+  display: grid;
+  grid-template-columns: 1.1fr 1.3fr;
+  gap: 24px;
+  height: 380px; /* Set fixed height to align both cards perfectly */
+  margin-bottom: 24px;
+}
+
+.transfers-left-col {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.transfers-left-col .transfer-form-row {
+  grid-template-columns: 1fr; /* Stack vertically in left column */
+  gap: 16px;
+}
+
+.transfers-left-col .transfer-panel {
+  height: 100%;
+  box-sizing: border-box;
+}
+
+.transfers-right-col {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  box-sizing: border-box;
+  background: var(--clr-surface);
+  border: 1px solid var(--clr-border);
+  border-radius: var(--radius-xl);
+  padding: 20px;
+  box-shadow: var(--shadow-md);
+  animation: slideUp 0.4s var(--ease-spring) both;
+}
+
+.transfers-page.retailer-view .transfers-content-layout {
+  grid-template-columns: 1fr;
+  max-width: 550px;
+  height: 320px; /* Slightly shorter for the single history card in retailer view */
+  margin: 0 auto 24px;
+}
+
+.history-scroll-container {
+  flex: 1;
+  overflow-y: auto;
+  padding-right: 8px;
+  margin-top: 12px;
+}
+
+/* Custom scrollbar for timeline */
+.history-scroll-container::-webkit-scrollbar {
+  width: 6px;
+}
+
+.history-scroll-container::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.history-scroll-container::-webkit-scrollbar-thumb {
+  background: var(--clr-border);
+  border-radius: 99px;
+}
+
+.history-scroll-container::-webkit-scrollbar-thumb:hover {
+  background: var(--clr-border-focus);
+}
+
+/* ── Quote Tagline Footer ── */
+.transfers-footer-quote {
+  position: absolute;
+  bottom: -32px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 100;
+  text-align: center;
+  width: auto;
+}
+
+.quote-text-container {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  background-color: rgba(15, 23, 42, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  padding: 10px 24px;
+  border-radius: 9999px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  pointer-events: auto;
+  cursor: default;
+}
+
+.transfers-footer-quote .quote-text {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 1.05rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  line-height: 1.4;
+  background: linear-gradient(135deg, #60a5fa 0%, #34d399 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  white-space: nowrap;
+}
+
+.quote-hollow-block {
+  color: #34d399; /* Match the bright green-blue theme */
+  flex-shrink: 0;
+  transition: transform 0.4s ease;
+}
+
+[data-theme="light"] .quote-text-container {
+  background-color: rgba(255, 255, 255, 0.8);
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.05);
+}
+
+[data-theme="light"] .transfers-footer-quote .quote-text {
+  background: linear-gradient(135deg, #1d4ed8 0%, #059669 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+[data-theme="light"] .quote-hollow-block {
+  color: #059669; /* Match light mode theme */
+}
+
+.quote-text-container:hover {
+  transform: scale(1.03);
+  box-shadow: 0 12px 40px rgba(96, 165, 250, 0.25);
+}
+
+.quote-text-container:hover .quote-hollow-block {
+  transform: rotate(15deg) scale(1.1);
+}
+
+[data-theme="light"] .quote-text-container:hover {
+  box-shadow: 0 12px 40px rgba(29, 78, 216, 0.12);
+}
+
+/* ── Background Decorations ── */
+.transfers-decorations {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  overflow: hidden;
+}
+
+.decor-icon-trans {
+  position: absolute;
+  width: 95px;
+  height: auto;
+  opacity: 1.0; /* Fully visible */
+  transition: opacity 0.3s ease;
+  filter: drop-shadow(0 8px 16px rgba(0, 0, 0, 0.08));
+}
+
+[data-theme="light"] .decor-icon-trans {
+  opacity: 1.0; /* Fully visible in light mode */
+  filter: drop-shadow(0 8px 24px rgba(0, 0, 0, 0.05));
+}
+
+/* Float Animations for 3D elements */
+@keyframes float3D_trans1 {
+  0% {
+    transform: translateY(0px) rotate(0deg) scale(1);
+  }
+  50% {
+    transform: translateY(-15px) rotate(5deg) scale(1.02);
+  }
+  100% {
+    transform: translateY(0px) rotate(0deg) scale(1);
+  }
+}
+
+@keyframes float3D_trans2 {
+  0% {
+    transform: translateY(0px) rotate(0deg) scale(1);
+  }
+  50% {
+    transform: translateY(12px) rotate(-6deg) scale(0.98);
+  }
+  100% {
+    transform: translateY(0px) rotate(0deg) scale(1);
+  }
+}
+
+.decor-transfer {
+  top: 25%;
+  left: 3.5%;
+  animation: float3D_trans1 8s ease-in-out infinite;
+}
+
+.decor-ownership {
+  top: 28%;
+  right: 3.5%;
+  animation: float3D_trans2 9.5s ease-in-out infinite;
+}
+
+.decor-blockchain {
+  bottom: 20%;
+  right: 4%;
+  animation: float3D_trans1 11s ease-in-out infinite;
+}
+
+/* ── Responsive ── */
+@media (max-width: 950px) {
+  .transfers-page {
+    height: auto;
+    overflow-y: auto;
+    padding-bottom: 96px;
   }
 
-  .history-section-header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 12px;
+  .transfers-content-layout {
+    grid-template-columns: 1fr;
+    min-height: auto;
+  }
+
+  .transfers-left-col .transfer-panel {
+    margin-bottom: 24px;
+  }
+
+  .history-scroll-container {
+    overflow-y: visible;
+  }
+
+  .transfers-footer-quote {
+    position: fixed;
+    bottom: 16px;
+  }
+}
+
+@media (max-width: 1150px) {
+  .transfers-decorations {
+    display: none;
   }
 }

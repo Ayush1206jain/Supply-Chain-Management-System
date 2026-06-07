@@ -275,31 +275,55 @@
 /* ── Quote Tagline Footer ── */
 .products-footer-quote {
   position: fixed;
-  bottom: 16px;
-  left: 0;
-  right: 0;
-  text-align: center;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
   z-index: 100;
-  pointer-events: none;
+  text-align: center;
 }
 
 .products-footer-quote .quote-text {
   font-family: 'Plus Jakarta Sans', sans-serif;
-  font-size: 0.95rem;
-  font-weight: 600;
-  letter-spacing: 0.02em;
+  font-size: 1.05rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
   line-height: 1.4;
-  background: linear-gradient(135deg, var(--clr-primary-300) 0%, var(--clr-accent-400) 100%);
+  background: linear-gradient(135deg, #60a5fa 0%, #34d399 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
-  display: inline-block;
-  opacity: 0.85;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background-color: rgba(15, 23, 42, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  padding: 10px 24px;
+  border-radius: 9999px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  pointer-events: auto;
+  cursor: default;
+}
+
+.products-footer-quote .quote-text:hover {
+  transform: scale(1.03);
+  background-color: rgba(15, 23, 42, 0.85);
+  border-color: rgba(255, 255, 255, 0.2);
+  box-shadow: 0 12px 40px rgba(96, 165, 250, 0.25);
 }
 
 [data-theme="light"] .products-footer-quote .quote-text {
-  background: none;
-  -webkit-background-clip: initial;
-  -webkit-text-fill-color: initial;
-  color: var(--clr-text);
-  opacity: 0.95;
+  background: linear-gradient(135deg, #1d4ed8 0%, #059669 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-color: rgba(255, 255, 255, 0.75);
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.06);
+}
+
+[data-theme="light"] .products-footer-quote .quote-text:hover {
+  background-color: rgba(255, 255, 255, 0.95);
+  border-color: rgba(15, 23, 42, 0.15);
+  box-shadow: 0 12px 40px rgba(29, 78, 216, 0.15);
 }

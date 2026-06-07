@@ -46,14 +46,24 @@
 .node-group line,
 .node-group rect,
 .node-group circle {
-  opacity: 0.18; /* Subtle background icons in dark mode */
+  opacity: 1.0; /* Fully visible */
+  transition: opacity 0.3s ease;
+}
+
+.node-group image {
+  opacity: 1.0; /* Fully visible colored PNG node icons */
+  transition: opacity 0.3s ease;
 }
 
 [data-theme="light"] .node-group path,
 [data-theme="light"] .node-group line,
 [data-theme="light"] .node-group rect,
 [data-theme="light"] .node-group circle {
-  opacity: 0.14; /* Subtle background icons in light mode */
+  opacity: 1.0; /* Fully visible */
+}
+
+[data-theme="light"] .node-group image {
+  opacity: 1.0; /* Fully visible */
 }
 
 /* Squared container node styles */
@@ -70,7 +80,7 @@
 /* Node Text Labels - high contrast and darker color */
 .node-label {
   fill: var(--clr-text-dim);
-  opacity: 0.85; /* Clearly visible in dark mode */
+  opacity: 0.95; /* Increased from 0.85 */
   font-family: var(--font-family), sans-serif;
   font-size: 14px;
   font-weight: 600;
@@ -80,26 +90,36 @@
 
 [data-theme="light"] .node-label {
   fill: var(--clr-text); /* Renders as a very dark slate color (#0f172a) in light mode */
-  opacity: 0.75;
+  opacity: 0.85;
 }
 
 /* Package Node styling */
 .moving-package {
   fill: var(--clr-accent-500); /* Accent green/teal for packages to stand out nicely */
   color: var(--clr-accent-500);
-  opacity: 0.35; /* Keep packages visible but integrated */
+  opacity: 0.55; /* Keep packages visible but integrated */
 }
 
 [data-theme="light"] .moving-package {
   fill: var(--clr-primary-600);
-  opacity: 0.28;
+  opacity: 0.45;
+}
+
+/* Moving Truck styling (Day 2 P2) */
+.moving-truck {
+  opacity: 0.85; /* Significantly increased opacity for visual prominence */
+  transition: opacity 0.3s ease;
+}
+
+[data-theme="light"] .moving-truck {
+  opacity: 0.75;
 }
 
 /* Floating SCM Icons Styling */
 .floating-icon {
   position: absolute;
   color: var(--clr-primary-500);
-  opacity: 0.1; /* Slightly higher opacity for visibility on dark theme */
+  opacity: 0.12; /* Slightly higher opacity for visibility on dark theme */
   pointer-events: none;
   z-index: 0;
   transition: opacity 0.3s ease;
@@ -107,7 +127,14 @@
 
 [data-theme="light"] .floating-icon {
   color: var(--clr-primary-400);
-  opacity: 0.08; /* Slightly higher opacity for visibility on light theme background */
+  opacity: 0.1; /* Slightly higher opacity for visibility on light theme background */
+}
+
+/* Hide background decorations on narrower/tablet/mobile viewports to prevent overlap */
+@media (max-width: 1150px) {
+  .supply-chain-bg {
+    display: none;
+  }
 }
 
 /* Floating animation keyframes */

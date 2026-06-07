@@ -103,8 +103,16 @@ export default function TransfersPage() {
   }
 
   return (
-    <div className="transfers-page animate-fade-in" id="transfers-page">
-      <h1 className="transfers-title">🔄 Ownership Transfers</h1>
+    <div className={`transfers-page animate-fade-in ${!canTransfer ? "retailer-view" : ""}`} id="transfers-page">
+      <h1 className="transfers-title">
+        <svg className="title-icon-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M17 3l4 4-4 4" />
+          <path d="M3 7h18" />
+          <path d="M7 21l-4-4 4-4" />
+          <path d="M21 17H3" />
+        </svg>
+        Ownership Transfers
+      </h1>
 
       {/* Role notice for retailers */}
       {!canTransfer && (
@@ -114,146 +122,173 @@ export default function TransfersPage() {
         </div>
       )}
 
-      {/* ── Transfer form ─────────────────────────────────────────── */}
-      {canTransfer && (
-        <div className="transfer-panel" id="transfer-form-panel">
-          <div className="transfer-panel-header">
-            <span className="transfer-panel-icon">↗️</span>
-            <h2 className="transfer-panel-title">Initiate Transfer</h2>
+      <div className="transfers-content-layout">
+        {/* ── Transfer form ─────────────────────────────────────────── */}
+        {canTransfer && (
+          <div className="transfers-left-col">
+            <div className="transfer-panel" id="transfer-form-panel">
+              <div className="transfer-panel-header">
+                <span className="transfer-panel-icon">↗️</span>
+                <h2 className="transfer-panel-title">Initiate Transfer</h2>
+              </div>
+
+              {formError && (
+                <div className="alert alert-error" style={{ marginBottom: 16 }}>
+                  ⚠️ {formError}
+                </div>
+              )}
+              {formSuccess && (
+                <div className="alert alert-success" style={{ marginBottom: 16 }}>
+                  {formSuccess}
+                </div>
+              )}
+
+              <form className="transfer-form" onSubmit={handleSubmit} noValidate>
+                <div className="transfer-form-row">
+                  <div className="form-group">
+                    <label className="form-label" htmlFor="select-product">
+                      Product *
+                    </label>
+                    <select
+                      id="select-product"
+                      className="form-input form-select"
+                      name="productId"
+                      value={form.productId}
+                      onChange={handleChange}
+                      disabled={loadingProducts}
+                    >
+                      <option value="">
+                        {loadingProducts ? "Loading products…" : "— Select a product —"}
+                      </option>
+                      {products.map((p) => (
+                        <option key={p._id} value={p._id}>
+                          {p.name} ({p.sku})
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="form-group">
+                    <label className="form-label" htmlFor="input-to-user">
+                      Recipient User ID *
+                    </label>
+                    <input
+                      id="input-to-user"
+                      className="form-input"
+                      name="toUserId"
+                      placeholder="MongoDB ObjectId of recipient"
+                      value={form.toUserId}
+                      onChange={handleChange}
+                      autoComplete="off"
+                      spellCheck={false}
+                    />
+                    <span className="form-error" style={{ color: "var(--clr-text-muted)", fontSize: "var(--font-size-xs)", marginTop: 4, display: "block" }}>
+                      Obtain the recipient's user ID from the admin panel or registration receipt.
+                    </span>
+                  </div>
+                </div>
+
+                <div className="transfer-form-actions">
+                  <button
+                    type="submit"
+                    className="btn btn-primary"
+                    id="btn-initiate-transfer"
+                    disabled={submitting || loadingProducts}
+                  >
+                    {submitting
+                      ? <><span className="spinner" /> Transferring…</>
+                      : "⛓ Transfer Ownership"}
+                  </button>
+                </div>
+              </form>
+            </div>
           </div>
+        )}
 
-          {formError && (
-            <div className="alert alert-error" style={{ marginBottom: 16 }}>
-              ⚠️ {formError}
-            </div>
-          )}
-          {formSuccess && (
-            <div className="alert alert-success" style={{ marginBottom: 16 }}>
-              {formSuccess}
-            </div>
-          )}
-
-          <form className="transfer-form" onSubmit={handleSubmit} noValidate>
-            <div className="transfer-form-row">
-              <div className="form-group">
-                <label className="form-label" htmlFor="select-product">
-                  Product *
-                </label>
-                <select
-                  id="select-product"
-                  className="form-input form-select"
-                  name="productId"
-                  value={form.productId}
-                  onChange={handleChange}
-                  disabled={loadingProducts}
-                >
-                  <option value="">
-                    {loadingProducts ? "Loading products…" : "— Select a product —"}
-                  </option>
-                  {products.map((p) => (
-                    <option key={p._id} value={p._id}>
-                      {p.name} ({p.sku})
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="form-group">
-                <label className="form-label" htmlFor="input-to-user">
-                  Recipient User ID *
-                </label>
-                <input
-                  id="input-to-user"
-                  className="form-input"
-                  name="toUserId"
-                  placeholder="MongoDB ObjectId of recipient"
-                  value={form.toUserId}
-                  onChange={handleChange}
-                  autoComplete="off"
-                  spellCheck={false}
-                />
-                <span className="form-error" style={{ color: "var(--clr-text-muted)", fontSize: "var(--font-size-xs)" }}>
-                  Obtain the recipient's user ID from the admin panel or registration receipt.
-                </span>
-              </div>
-            </div>
-
-            <div className="transfer-form-actions">
-              <button
-                type="submit"
-                className="btn btn-primary"
-                id="btn-initiate-transfer"
-                disabled={submitting || loadingProducts}
+        {/* ── Transfer history ──────────────────────────────────────── */}
+        <div className="transfers-right-col" id="transfer-history-section">
+          <div className="history-section-header">
+            <h2 className="history-section-title">Transfer History</h2>
+            <div className="history-product-selector">
+              <label htmlFor="history-select">View history for:</label>
+              <select
+                id="history-select"
+                className="form-input form-select"
+                value={historyProductId}
+                onChange={(e) => setHistoryProductId(e.target.value)}
+                disabled={loadingProducts}
               >
-                {submitting
-                  ? <><span className="spinner" /> Transferring…</>
-                  : "⛓ Transfer Ownership"}
-              </button>
+                <option value="">— Select a product —</option>
+                {products.map((p) => (
+                  <option key={p._id} value={p._id}>
+                    {p.name} ({p.sku})
+                  </option>
+                ))}
+              </select>
             </div>
-          </form>
-        </div>
-      )}
+          </div>
 
-      {/* ── Transfer history ──────────────────────────────────────── */}
-      <div id="transfer-history-section">
-        <div className="history-section-header">
-          <h2 className="history-section-title">Transfer History</h2>
-          <div className="history-product-selector">
-            <label htmlFor="history-select">View history for:</label>
-            <select
-              id="history-select"
-              className="form-input form-select"
-              value={historyProductId}
-              onChange={(e) => setHistoryProductId(e.target.value)}
-              disabled={loadingProducts}
-            >
-              <option value="">— Select a product —</option>
-              {products.map((p) => (
-                <option key={p._id} value={p._id}>
-                  {p.name} ({p.sku})
-                </option>
-              ))}
-            </select>
+          <div className="history-scroll-container">
+            {/* No product selected */}
+            {!historyProductId && (
+              <div className="transfers-empty">
+                <span className="transfers-empty-icon">🔍</span>
+                <p>Select a product above to view its ownership timeline.</p>
+              </div>
+            )}
+
+            {/* Loading */}
+            {historyProductId && loadingHistory && (
+              <div className="page-center" style={{ padding: "40px 0" }}>
+                <div className="spinner spinner-lg" />
+              </div>
+            )}
+
+            {/* Error */}
+            {historyError && (
+              <div className="alert alert-error">{historyError}</div>
+            )}
+
+            {/* Empty history */}
+            {historyProductId && !loadingHistory && !historyError && transfers.length === 0 && (
+              <div className="transfers-empty">
+                <span className="transfers-empty-icon">📭</span>
+                <p>No transfers recorded for this product yet.</p>
+              </div>
+            )}
+
+            {/* Timeline */}
+            {!loadingHistory && transfers.length > 0 && (
+              <div className="transfer-timeline stagger" id="transfer-timeline">
+                {transfers.map((t, i) => (
+                  <TransferTimelineItem key={t._id} transfer={t} index={i} />
+                ))}
+              </div>
+            )}
           </div>
         </div>
-
-        {/* No product selected */}
-        {!historyProductId && (
-          <div className="transfers-empty">
-            <span className="transfers-empty-icon">🔍</span>
-            <p>Select a product above to view its ownership timeline.</p>
-          </div>
-        )}
-
-        {/* Loading */}
-        {historyProductId && loadingHistory && (
-          <div className="page-center" style={{ padding: "40px 0" }}>
-            <div className="spinner spinner-lg" />
-          </div>
-        )}
-
-        {/* Error */}
-        {historyError && (
-          <div className="alert alert-error">{historyError}</div>
-        )}
-
-        {/* Empty history */}
-        {historyProductId && !loadingHistory && !historyError && transfers.length === 0 && (
-          <div className="transfers-empty">
-            <span className="transfers-empty-icon">📭</span>
-            <p>No transfers recorded for this product yet.</p>
-          </div>
-        )}
-
-        {/* Timeline */}
-        {!loadingHistory && transfers.length > 0 && (
-          <div className="transfer-timeline stagger" id="transfer-timeline">
-            {transfers.map((t, i) => (
-              <TransferTimelineItem key={t._id} transfer={t} index={i} />
-            ))}
-          </div>
-        )}
       </div>
+
+      {/* ── Background Decorations ── */}
+      <div className="transfers-decorations">
+        <img src="/assets/icons/transfer.png" alt="Transfer" className="decor-icon-trans decor-transfer" />
+        <img src="/assets/icons/ownership.png" alt="Ownership" className="decor-icon-trans decor-ownership" />
+        <img src="/assets/icons/blockchain.png" alt="Blockchain" className="decor-icon-trans decor-blockchain" />
+      </div>
+
+      {/* Quote Tagline */}
+      <footer className="transfers-footer-quote">
+        <div className="quote-text-container">
+          <span className="quote-text">
+            Transparent transfers. Verified ownership. Immutable records.
+          </span>
+          <svg className="quote-hollow-block" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" />
+            <polyline points="3.27 6.96 12 12.01 20.73 6.96" />
+            <line x1="12" y1="22.08" x2="12" y2="12" />
+          </svg>
+        </div>
+      </footer>
     </div>
   );
 }
