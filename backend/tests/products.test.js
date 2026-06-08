@@ -1,9 +1,10 @@
 /**
- * products.test.js 
- * Tests: GET /api/products, GET /api/products/:id, POST /api/products
+ * products.test.js
+ * Tests: GET /api/products, GET /api/products/:id, POST /api/products,
+ *        GET /api/products/:id/status
  *
- * Chain calls (registerProductOnChain) are silently skipped because
- * BLOCKCHAIN_RPC_URL is absent — confirmed in setup.js.
+ * Chain calls (registerProductOnChain, getProductFromChain) are silently
+ * skipped because BLOCKCHAIN_RPC_URL is absent — confirmed in setup.js.
  */
 
 const request = require("supertest");
@@ -55,6 +56,13 @@ describe("Auth guard on product routes", () => {
 
   it("POST /api/products returns 401 without token", async () => {
     const res = await request(app).post("/api/products").send(sampleProduct);
+    expect(res.status).toBe(401);
+  });
+
+  it("GET /api/products/:id/status returns 401 without token", async () => {
+    const res = await request(app).get(
+      "/api/products/64a1f2b3c4d5e6f7a8b9c0d1/status",
+    );
     expect(res.status).toBe(401);
   });
 });
@@ -180,5 +188,68 @@ describe("GET /api/products", () => {
       .set("Authorization", `Bearer ${token}`);
 
     expect(res.status).toBe(404);
+  });
+});
+
+describe("GET /api/products/:id/status", () => {
+  let token;
+  let createdProductId;
+
+  beforeEach(async () => {
+    token = await loginAs("manufacturer");
+    const res = await request(app)
+      .post("/api/products")
+      .set("Authorization", `Bearer ${token}`)
+      .send({ ...sampleProduct, sku: "SKU-STATUS-001" });
+    createdProductId = res.body.product._id;
+  });
+
+  it("returns 404 for unknown product id", async () => {
+    const res = await request(app)
+      .get("/api/products/64a1f2b3c4d5e6f7a8b9c0d1/status")
+      .set("Authorization", `Bearer ${token}`);
+
+    expect(res.status).toBe(404);
+    expect(res.body.success).toBe(false);
+  });
+
+  it("returns 200 with chainStatus field for a valid product", async () => {
+    const res = await request(app)
+      .get(`/api/products/${createdProductId}/status`)
+      .set("Authorization", `Bearer ${token}`);
+
+    expect(res.status).toBe(200);
+    expect(res.body.success).toBe(true);
+    expect(res.body.productId).toBe(createdProductId);
+    expect(res.body.sku).toBe("SKU-STATUS-001");
+
+    // chainStatus is present — value depends on chain availability
+    // In test env (no chain): 'NOT_ANCHORED' or 'CHAIN_UNAVAILABLE'
+    expect(res.body.chainStatus).toBeDefined();
+    expect(typeof res.body.chainStatus).toBe("string");
+  });
+
+  it("returns chainStatus as NOT_ANCHORED or CHAIN_UNAVAILABLE without blockchain", async () => {
+    const res = await request(app)
+      .get(`/api/products/${createdProductId}/status`)
+      .set("Authorization", `Bearer ${token}`);
+
+    expect(res.status).toBe(200);
+    // No chain configured in tests — should degrade gracefully
+    expect(["NOT_ANCHORED", "CHAIN_UNAVAILABLE"]).toContain(
+      res.body.chainStatus,
+    );
+    // pendingTransfer is null when chain is unavailable
+    expect(res.body.pendingTransfer).toBeNull();
+  });
+
+  it("returns blockchainTxHash field (null when chain not configured)", async () => {
+    const res = await request(app)
+      .get(`/api/products/${createdProductId}/status`)
+      .set("Authorization", `Bearer ${token}`);
+
+    expect(res.status).toBe(200);
+    // blockchainTxHash should be null in test env (no chain)
+    expect(res.body.blockchainTxHash).toBeNull();
   });
 });

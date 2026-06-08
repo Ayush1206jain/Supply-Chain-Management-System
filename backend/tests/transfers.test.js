@@ -1,9 +1,10 @@
 /**
  * transfers.test.js 
- * Tests: POST /api/transfers, GET /api/transfers/product/:productId
+ * Tests: POST /api/transfers, GET /api/transfers/product/:productId,
+ *        POST /api/transfers/confirm 
  *
- * Chain calls (transferOwnershipOnChain) are silently skipped — DB sync
- * behaviour is tested; syncStatus will be 'failed' (no chain configured).
+ * Chain calls (transferOwnershipOnChain, confirmTransferOnChain) are silently
+ * skipped — DB sync behaviour is tested; syncStatus will be 'failed' (no chain).
  */
 
 const request = require("supertest");
@@ -52,6 +53,13 @@ describe("Auth guard on transfer routes", () => {
     const res = await request(app)
       .post("/api/transfers")
       .send({ productId: "abc", toUserId: "xyz" });
+    expect(res.status).toBe(401);
+  });
+
+  it("POST /api/transfers/confirm returns 401 without token", async () => {
+    const res = await request(app)
+      .post("/api/transfers/confirm")
+      .send({ transferId: "abc" });
     expect(res.status).toBe(401);
   });
 });
@@ -177,3 +185,100 @@ describe("GET /api/transfers/product/:productId", () => {
     expect(res.status).toBe(404);
   });
 });
+
+
+
+describe("POST /api/transfers/confirm", () => {
+  let mfrToken, mfrId, distToken, distId, otherToken, product, transferId;
+
+  beforeEach(async () => {
+    ({ token: mfrToken, userId: mfrId } = await registerAndLogin(
+      "manufacturer",
+      "mfr3"
+    ));
+    ({ token: distToken, userId: distId } = await registerAndLogin(
+      "distributor",
+      "dist3"
+    ));
+    ({ token: otherToken } = await registerAndLogin("retailer", "ret3"));
+
+    product = await createProduct(mfrToken, "SKU-T-003");
+
+    // Create a pending transfer from mfr → dist
+    const transferRes = await request(app)
+      .post("/api/transfers")
+      .set("Authorization", `Bearer ${mfrToken}`)
+      .send({ productId: product._id, toUserId: distId });
+
+    transferId = transferRes.body.transfer._id;
+  });
+
+  it("returns 400 when transferId is missing", async () => {
+    const res = await request(app)
+      .post("/api/transfers/confirm")
+      .set("Authorization", `Bearer ${distToken}`)
+      .send({});
+
+    expect(res.status).toBe(400);
+    expect(res.body.success).toBe(false);
+  });
+
+  it("returns 404 for an unknown transferId", async () => {
+    const res = await request(app)
+      .post("/api/transfers/confirm")
+      .set("Authorization", `Bearer ${distToken}`)
+      .send({ transferId: "64a1f2b3c4d5e6f7a8b9c0d9" });
+
+    expect(res.status).toBe(404);
+    expect(res.body.success).toBe(false);
+  });
+
+  it("returns 403 when caller is not the intended receiver", async () => {
+    const res = await request(app)
+      .post("/api/transfers/confirm")
+      .set("Authorization", `Bearer ${otherToken}`) // not the toUser
+      .send({ transferId });
+
+    expect(res.status).toBe(403);
+    expect(res.body.success).toBe(false);
+  });
+
+  it("confirms the transfer: updates owner in DB and returns success", async () => {
+    const res = await request(app)
+      .post("/api/transfers/confirm")
+      .set("Authorization", `Bearer ${distToken}`) // receiver confirms
+      .send({ transferId });
+
+    expect(res.status).toBe(200);
+    expect(res.body.success).toBe(true);
+    expect(res.body.blockchainSyncStatus).toBeDefined();
+    // syncStatus is 'failed' when chain is not configured, but DB still updates
+    expect(["confirmed", "failed"]).toContain(res.body.blockchainSyncStatus);
+
+    // Verify product owner changed to distributor in DB
+    const productRes = await request(app)
+      .get(`/api/products/${product._id}`)
+      .set("Authorization", `Bearer ${distToken}`);
+
+    expect(productRes.status).toBe(200);
+    expect(productRes.body.product.owner._id).toBe(distId);
+  });
+
+  it("returns 409 when the transfer is already confirmed", async () => {
+    // First confirm
+    await request(app)
+      .post("/api/transfers/confirm")
+      .set("Authorization", `Bearer ${distToken}`)
+      .send({ transferId });
+
+    // Second confirm on the same transfer
+    const res = await request(app)
+      .post("/api/transfers/confirm")
+      .set("Authorization", `Bearer ${distToken}`)
+      .send({ transferId });
+
+    expect(res.status).toBe(409);
+    expect(res.body.success).toBe(false);
+  });
+});
+
