@@ -1,7 +1,7 @@
 const mongoose = require("mongoose");
 const { Product, Transfer, User } = require("../models");
 const { supportsTransactions } = require("../config/db");
-const { transferOwnershipOnChain } = require("../utils/chainAdapter");
+const { transferOwnershipOnChain, confirmTransferOnChain } = require("../utils/chainAdapter");
 
 async function createTransfer(req, res) {
   const { productId, toUserId } = req.body || {};
@@ -178,7 +178,79 @@ async function listTransfersByProduct(req, res) {
   });
 }
 
+// ─── Day 2 (P2): Confirm multi-sig transfer ────────────────────────────────────
+
+/**
+ * POST /api/transfers/confirm
+ * Body: { transferId }
+ * Auth: JWT — only the intended receiver (toUser) can call this.
+ *
+ * Confirms an on-chain pending transfer that was previously initiated by the
+ * sender. Updates DB: sets syncStatus = 'confirmed', blockchainTxHash,
+ * and product.owner = toUser.
+ */
+async function confirmTransfer(req, res) {
+  const { transferId } = req.body || {};
+
+  if (!transferId) {
+    return res.status(400).json({
+      success: false,
+      message: "transferId is required",
+    });
+  }
+
+  const transfer = await Transfer.findById(transferId).populate("product");
+  if (!transfer) {
+    return res.status(404).json({
+      success: false,
+      message: "Transfer not found",
+    });
+  }
+
+  // Only the intended receiver can confirm
+  if (transfer.toUser.toString() !== req.user.id.toString()) {
+    return res.status(403).json({
+      success: false,
+      message: "Only the intended receiver can confirm this transfer",
+    });
+  }
+
+  // Guard: already confirmed by receiver (independent of blockchain syncStatus)
+  if (transfer.receiverConfirmed) {
+    return res.status(409).json({
+      success: false,
+      message: "Transfer is already confirmed",
+    });
+  }
+
+  // Attempt on-chain confirmation (graceful: null if chain unavailable)
+  const txHash = await confirmTransferOnChain(transfer.product);
+
+  transfer.syncStatus = txHash ? "confirmed" : "failed";
+  transfer.receiverConfirmed = true;
+  if (txHash) transfer.blockchainTxHash = txHash;
+  await transfer.save();
+
+  // Update product owner in DB
+  const product = await Product.findById(transfer.product._id);
+  if (product) {
+    product.owner = transfer.toUser;
+    await product.save();
+  }
+
+  return res.json({
+    success: true,
+    message: txHash
+      ? "Transfer confirmed on-chain and in DB"
+      : "Transfer confirmed in DB (chain unavailable — will retry)",
+    transfer,
+    blockchainSyncStatus: transfer.syncStatus,
+    blockchainTxHash: txHash || null,
+  });
+}
+
 module.exports = {
   createTransfer,
   listTransfersByProduct,
+  confirmTransfer,
 };

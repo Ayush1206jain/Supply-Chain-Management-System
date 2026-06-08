@@ -6,8 +6,8 @@ const { requireRoles } = require("../middleware/requireRole");
 
 const router = express.Router();
 
+// ─── Existing routes (unchanged) ─────────────────────────────────────────────
 router.get("/", authRequired, productController.listProducts);
-router.get("/:id", authRequired, productController.getProductById);
 router.post(
   "/",
   authRequired,
@@ -15,5 +15,12 @@ router.post(
   productController.createProduct
 );
 
-module.exports = router;
 
+// NOTE: /... specific routes must come BEFORE /:id to avoid matching conflicts.
+// GET /api/products/:id/status  — live DB + blockchain status view
+router.get("/:id/status", authRequired, productController.getProductStatus);
+
+// ─── Existing parameterised routes ───────────────────────────────────────────
+router.get("/:id", authRequired, productController.getProductById);
+
+module.exports = router;

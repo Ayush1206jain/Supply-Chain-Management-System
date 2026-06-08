@@ -34,6 +34,16 @@ const transferSchema = new mongoose.Schema(
       type: Number,
       default: 0,
     },
+    /**
+     * Day 2 (P2): tracks whether the receiver has explicitly confirmed
+     * the multi-sig transfer via POST /api/transfers/confirm.
+     * Separate from syncStatus so double-confirm is blocked even when
+     * the blockchain is unavailable (syncStatus would stay 'failed').
+     */
+    receiverConfirmed: {
+      type: Boolean,
+      default: false,
+    },
   },
   { timestamps: true }
 );
@@ -54,3 +64,4 @@ transferSchema.pre("validate", function (next) {
 
 module.exports = mongoose.model("Transfer", transferSchema);
 module.exports.SYNC_STATUS = SYNC_STATUS;
+
