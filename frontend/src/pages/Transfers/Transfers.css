@@ -348,7 +348,7 @@
   border: 1px solid rgba(255, 255, 255, 0.08);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  padding: 10px 24px;
+  padding: 8px 20px; /* Tighter padding for smaller font size */
   border-radius: 9999px;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
   transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
@@ -358,19 +358,16 @@
 
 .transfers-footer-quote .quote-text {
   font-family: 'Plus Jakarta Sans', sans-serif;
-  font-size: 1.05rem;
+  font-size: 0.9rem; /* Reduced font size */
   font-weight: 700;
   letter-spacing: 0.03em;
   line-height: 1.4;
-  background: linear-gradient(135deg, #60a5fa 0%, #34d399 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  color: #cbd5e1; /* Light color for dark theme */
   white-space: nowrap;
 }
 
 .quote-hollow-block {
-  color: #34d399; /* Match the bright green-blue theme */
+  color: #cbd5e1; /* Match light color on dark theme */
   flex-shrink: 0;
   transition: transform 0.4s ease;
 }
@@ -382,14 +379,11 @@
 }
 
 [data-theme="light"] .transfers-footer-quote .quote-text {
-  background: linear-gradient(135deg, #1d4ed8 0%, #059669 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  color: #334155; /* Dark color for light theme */
 }
 
 [data-theme="light"] .quote-hollow-block {
-  color: #059669; /* Match light mode theme */
+  color: #334155; /* Match dark color on light theme */
 }
 
 .quote-text-container:hover {

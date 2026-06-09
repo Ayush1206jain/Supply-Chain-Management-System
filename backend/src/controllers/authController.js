@@ -9,12 +9,12 @@ function validateRole(role) {
 }
 
 async function register(req, res) {
-  const { email, password, role } = req.body || {};
+  const { name, email, password, role } = req.body || {};
 
-  if (!email || !password || !role) {
+  if (!name || !email || !password || !role) {
     return res.status(400).json({
       success: false,
-      message: "email, password, and role are required",
+      message: "name, email, password, and role are required",
     });
   }
 
@@ -35,6 +35,7 @@ async function register(req, res) {
 
   const passwordHash = await bcrypt.hash(password, 10);
   const user = await User.create({
+    name: name.trim(),
     email: email.toLowerCase().trim(),
     passwordHash,
     role,
@@ -42,7 +43,7 @@ async function register(req, res) {
 
   return res.status(201).json({
     success: true,
-    user: { id: user._id, email: user.email, role: user.role },
+    user: { id: user._id, name: user.name, email: user.email, role: user.role },
   });
 }
 
@@ -76,12 +77,13 @@ async function login(req, res) {
     sub: user._id.toString(),
     role: user.role,
     email: user.email,
+    name: user.name,
   });
 
   return res.status(200).json({
     success: true,
     token,
-    user: { id: user._id, email: user.email, role: user.role },
+    user: { id: user._id, name: user.name, email: user.email, role: user.role },
   });
 }
 

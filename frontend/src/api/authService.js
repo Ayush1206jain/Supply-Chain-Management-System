@@ -9,8 +9,9 @@ export async function loginUser(email, password) {
   return data; // { success, token, user }
 }
 
-export async function registerUser(email, password, role) {
+export async function registerUser(name, email, password, role) {
   const { data } = await api.post("/api/auth/register", {
+    name,
     email,
     password,
     role,

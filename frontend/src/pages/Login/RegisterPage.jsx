@@ -9,6 +9,7 @@ const ROLES = ["manufacturer", "distributor", "retailer", "admin"];
 export default function RegisterPage() {
   const navigate = useNavigate();
 
+  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -20,7 +21,7 @@ export default function RegisterPage() {
     e.preventDefault();
     setError("");
 
-    if (!email.trim() || !password || !role) {
+    if (!name.trim() || !email.trim() || !password || !role) {
       setError("All fields are required.");
       return;
     }
@@ -37,7 +38,7 @@ export default function RegisterPage() {
 
     setLoading(true);
     try {
-      const data = await registerUser(email.trim(), password, role);
+      const data = await registerUser(name.trim(), email.trim(), password, role);
       if (data.success) {
         navigate("/login", {
           state: { registered: true },
@@ -75,6 +76,22 @@ export default function RegisterPage() {
 
         {/* Form */}
         <form onSubmit={handleSubmit} className="auth-form stagger">
+          <div className="form-group animate-slide-up">
+            <label htmlFor="register-name" className="form-label">
+              Name
+            </label>
+            <input
+              id="register-name"
+              type="text"
+              className="form-input"
+              placeholder="Your full name"
+              autoComplete="name"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              disabled={loading}
+            />
+          </div>
+
           <div className="form-group animate-slide-up">
             <label htmlFor="register-email" className="form-label">
               Email
