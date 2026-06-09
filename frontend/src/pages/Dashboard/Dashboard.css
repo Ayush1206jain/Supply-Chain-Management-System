@@ -5,7 +5,7 @@
 .dashboard {
   max-width: 1100px;
   margin: 0 auto;
-  padding: 0 24px 60px;
+  padding: 0 24px 80px;
   position: relative;
   z-index: 1;
 }
@@ -164,8 +164,8 @@
 /* ── Action cards ─────────────────────────────────────────────────────────── */
 .dashboard-actions {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-  gap: 16px;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
 }
 
 .dashboard-action-card {
@@ -210,8 +210,8 @@
 /* ── Info grid ────────────────────────────────────────────────────────────── */
 .dashboard-info-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: 16px;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
 }
 
 .dashboard-info-label {
@@ -300,5 +300,93 @@
   bottom: 15%;
   right: 3.5%;
   animation: float3D_1 10s ease-in-out infinite;
+}
+
+/* ── Distributor Dashboard Background Decorations ── */
+.distributor-decorations {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  overflow: hidden;
+}
+
+.decor-distributor-1 {
+  top: 24%;
+  left: 3.5%;
+  width: 125px; /* Larger distributor warehouse icon */
+  animation: float3D_1 8.5s ease-in-out infinite;
+}
+
+.decor-distributor-2 {
+  bottom: 16%;
+  right: 3.5%;
+  animation: float3D_2 10.5s ease-in-out infinite;
+}
+
+/* ── Retailer Dashboard Background Decorations ── */
+.retailer-decorations {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  overflow: hidden;
+}
+
+.decor-retailer-1 {
+  top: 24%;
+  left: 3.5%;
+  width: 125px; /* Larger retail store icon */
+  animation: float3D_1 9s ease-in-out infinite;
+}
+
+.decor-retailer-2 {
+  bottom: 16%;
+  right: 3.5%;
+  width: 95px;
+  animation: float3D_2 11s ease-in-out infinite;
+}
+
+/* ── Quote Tagline Footer ── */
+.dashboard-footer-quote {
+  position: absolute;
+  bottom: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  text-align: center;
+  width: 100%;
+  max-width: 900px;
+  z-index: 2;
+  padding: 0 24px;
+}
+
+.dashboard-quote-text {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 0.9rem; /* Reduced font size */
+  font-weight: 600;
+  font-style: italic;
+  letter-spacing: 0.03em;
+  color: #cbd5e1; /* Light color for dark theme */
+  display: inline-block;
+  opacity: 0.85;
+  white-space: nowrap; /* Force tagline to stay in a single line */
+}
+
+[data-theme="light"] .dashboard-quote-text {
+  color: #334155; /* Dark color for light theme */
+}
+
+/* ── Mobile Viewports Responsiveness Override ── */
+@media (max-width: 768px) {
+  .dashboard-actions,
+  .dashboard-info-grid {
+    grid-template-columns: 1fr !important;
+    gap: 16px !important;
+  }
+  
+  .dashboard-quote-text {
+    white-space: normal !important; /* Allow wrapping on small mobile screens */
+    font-size: 1rem;
+  }
 }
 

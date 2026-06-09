@@ -87,7 +87,7 @@ export default function DashboardPage() {
 
           <div className="dashboard-hero-text-block">
             <h1 className="dashboard-welcome">
-              Welcome back, {config.label} !
+              Welcome back, {user?.name || config.label} !
             </h1>
             <h2 className="dashboard-hero-tagline">
               Track Every Product. Verify Every Step.
@@ -146,6 +146,29 @@ export default function DashboardPage() {
           <img src="/assets/icons/checklist.png" alt="Checklist" className="decor-icon decor-checklist" />
         </div>
       )}
+
+      {/* Floating 3D SCM Illustrations for Distributor Role */}
+      {user?.role === "distributor" && (
+        <div className="distributor-decorations" aria-hidden="true">
+          <img src="/assets/icons/distributor_trans.png" alt="Distributor" className="decor-icon decor-distributor-1" />
+          <img src="/assets/icons/distributor2.png" alt="Distributor Alternative" className="decor-icon decor-distributor-2" />
+        </div>
+      )}
+
+      {/* Floating 3D SCM Illustrations for Retailer Role */}
+      {user?.role === "retailer" && (
+        <div className="retailer-decorations" aria-hidden="true">
+          <img src="/assets/icons/retail_store.png" alt="Retail Store" className="decor-icon decor-retailer-1" />
+          <img src="/assets/icons/shopping.png" alt="Shopping" className="decor-icon decor-retailer-2" />
+        </div>
+      )}
+
+      {/* Quote Tagline at bottom of screen */}
+      <footer className="dashboard-footer-quote">
+        <p className="dashboard-quote-text">
+          "Moving products forward,preserving trust and transparency..."
+        </p>
+      </footer>
     </div>
   );
 }
