@@ -24,3 +24,15 @@ export async function createProduct(data) {
   const res = await api.post("/api/products", data);
   return res.data; // { product: {...} }
 }
+
+/**
+ * Day 3 (P1): Get combined DB + live blockchain status for a product.
+ * Calls GET /api/products/:id/status (added in Day 2 P2).
+ * Returns { productId, sku, name, dbOwner, chainStatus, pendingTransfer, blockchainTxHash }
+ * chainStatus: 'CREATED' | 'IN_TRANSIT' | 'DELIVERED' | 'DISPUTED' | 'NOT_ANCHORED' | 'CHAIN_UNAVAILABLE'
+ * @param {string} id  MongoDB ObjectId of the product
+ */
+export async function getProductStatus(id) {
+  const res = await api.get(`/api/products/${id}/status`);
+  return res.data;
+}

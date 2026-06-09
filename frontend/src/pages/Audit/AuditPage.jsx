@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { getAuditReport } from '../../api/auditService';
-import { listProducts } from '../../api/productService';
+import { listProducts, getProductStatus } from '../../api/productService';
 import './Audit.css';
 
 /**
@@ -23,6 +23,9 @@ export default function AuditPage() {
   // Report state
   const [report, setReport] = useState(null);
 
+  // Day 3 (P1): Live chain status from P2 endpoint
+  const [chainStatusData, setChainStatusData] = useState(null);
+
   async function handleSearch(e) {
     e.preventDefault();
     const id = productId.trim();
@@ -30,11 +33,17 @@ export default function AuditPage() {
     setLoading(true);
     setError('');
     setReport(null);
+    setChainStatusData(null);
     try {
-      const data = await getAuditReport(id);
-      setReport(data);
+      const [auditData, statusData] = await Promise.allSettled([
+        getAuditReport(id),
+        getProductStatus(id),
+      ]);
+      if (auditData.status === 'fulfilled') setReport(auditData.value);
+      else throw new Error(auditData.reason?.response?.data?.message || 'Product not found or audit unavailable.');
+      if (statusData.status === 'fulfilled') setChainStatusData(statusData.value);
     } catch (err) {
-      setError(err.response?.data?.message || 'Product not found or audit unavailable.');
+      setError(err.message || 'Product not found or audit unavailable.');
     } finally {
       setLoading(false);
     }
@@ -200,6 +209,39 @@ export default function AuditPage() {
                       <dt>Registered At</dt>
                       <dd>{formatDate(report.chainState.registeredAt)}</dd>
                     </dl>
+                  </div>
+                )}
+
+                {/* Day 3 (P1): Live ProductStatus from P2 /status endpoint */}
+                {chainStatusData && (
+                  <div className="chain-state-box" id="audit-live-chain-status" style={{ marginTop: 12 }}>
+                    <p className="chain-state-title">⛓ Live Product Status (P2)</p>
+                    <dl className="audit-dl audit-dl-compact">
+                      <dt>Chain Status</dt>
+                      <dd>
+                        <span className={`chain-status-badge status-${chainStatusData.chainStatus}`} style={{ fontSize: '0.7rem' }}>
+                          {chainStatusData.chainStatus || '—'}
+                        </span>
+                      </dd>
+                      {chainStatusData.pendingTransfer && (
+                        <>
+                          <dt>Pending Transfer From</dt>
+                          <dd><code className="hash-code">{shortHash(chainStatusData.pendingTransfer.from)}</code></dd>
+                          <dt>Pending Transfer To</dt>
+                          <dd><code className="hash-code">{shortHash(chainStatusData.pendingTransfer.to)}</code></dd>
+                        </>
+                      )}
+                    </dl>
+                    {chainStatusData.chainStatus === 'DISPUTED' && (
+                      <div className="alert alert-error" style={{ marginTop: 8, padding: '6px 10px', fontSize: '0.75rem' }}>
+                        ⚠️ <strong>DISPUTED:</strong> This product has been flagged on-chain. Investigate before further transfers.
+                      </div>
+                    )}
+                    {chainStatusData.chainStatus === 'IN_TRANSIT' && chainStatusData.pendingTransfer && (
+                      <div className="alert" style={{ background: 'rgba(252,196,25,0.1)', border: '1px solid rgba(252,196,25,0.3)', borderRadius: 8, marginTop: 8, padding: '6px 10px', fontSize: '0.75rem', color: '#fbbf24' }}>
+                        🚚 <strong>IN TRANSIT:</strong> Ownership handover initiated — awaiting receiver confirmation.
+                      </div>
+                    )}
                   </div>
                 )}
               </section>

@@ -2,6 +2,23 @@
    AuditPage styles — BlockTrace Day 15
    ═══════════════════════════════════════════════════════════════ */
 
+/* ── Day 3 (P1): Shared ProductStatus badge styles ──────────────
+   Duplicated here from Products.css so AuditPage renders them
+   without importing Products.css.                              */
+.chain-status-badge {
+  display: inline-flex; align-items: center; gap: 5px;
+  font-size: var(--font-size-xs); font-weight: 700;
+  padding: 3px 9px; border-radius: var(--radius-full);
+  letter-spacing: 0.04em; text-transform: uppercase;
+}
+.chain-status-badge.status-CREATED    { background: rgba(96,165,250,.15); color: #60a5fa; border: 1px solid rgba(96,165,250,.25); }
+.chain-status-badge.status-IN_TRANSIT { background: rgba(252,196,25,.15); color: #fbbf24; border: 1px solid rgba(252,196,25,.25); }
+.chain-status-badge.status-DELIVERED  { background: rgba(52,211,153,.15); color: #34d399; border: 1px solid rgba(52,211,153,.25); }
+.chain-status-badge.status-DISPUTED   { background: rgba(248,113,113,.15); color: #f87171; border: 1px solid rgba(248,113,113,.25); }
+.chain-status-badge.status-NOT_ANCHORED,
+.chain-status-badge.status-CHAIN_UNAVAILABLE { background: rgba(148,163,184,.12); color: var(--clr-text-muted); border: 1px solid rgba(148,163,184,.15); }
+
+
 /* ── Page Layout ── */
 .audit-page {
   max-width: 1200px;

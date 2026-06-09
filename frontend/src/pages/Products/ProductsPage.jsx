@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "../../context/AuthContext";
-import { listProducts, createProduct } from "../../api/productService";
+import { listProducts, createProduct, getProductStatus } from "../../api/productService";
 import SupplyChainBackground from "../../components/SupplyChainBackground";
 import "./Products.css";
 
@@ -274,28 +274,63 @@ export default function ProductsPage() {
   );
 }
 
-/** Individual product card */
+/** Status label + icon map for the P2 ProductStatus enum */
+const STATUS_MAP = {
+  CREATED:          { label: "Created",     icon: "🔵" },
+  IN_TRANSIT:       { label: "In Transit",  icon: "🚚" },
+  DELIVERED:        { label: "Delivered",   icon: "✅" },
+  DISPUTED:         { label: "⚠ Disputed",  icon: "🔴" },
+  NOT_ANCHORED:     { label: "Not On-Chain",icon: "⏳" },
+  CHAIN_UNAVAILABLE:{ label: "Chain Offline",icon: "⚡" },
+};
+
+/** Individual product card — Day 3 (P1): now fetches live chainStatus */
 function ProductCard({ product, index }) {
   const isAnchored = !!product.blockchainTxHash;
+  const [chainStatus, setChainStatus] = useState("loading");
+
+  useEffect(() => {
+    let cancelled = false;
+    getProductStatus(product._id)
+      .then((data) => { if (!cancelled) setChainStatus(data.chainStatus || "NOT_ANCHORED"); })
+      .catch(() => { if (!cancelled) setChainStatus("CHAIN_UNAVAILABLE"); });
+    return () => { cancelled = true; };
+  }, [product._id]);
+
+  const statusInfo = STATUS_MAP[chainStatus] || { label: chainStatus, icon: "⏳" };
+  const isDisputed = chainStatus === "DISPUTED";
 
   return (
     <div
-      className="product-card animate-slide-up"
+      className={`product-card animate-slide-up${isDisputed ? " disputed-card" : ""}`}
       id={`product-card-${product._id}`}
-      style={{ animationDelay: `${index * 60}ms` }}
+      style={{ animationDelay: `${index * 60}ms`, borderColor: isDisputed ? "rgba(248,113,113,0.5)" : undefined }}
     >
       <div className="product-card-top">
         <div>
           <p className="product-name">{product.name}</p>
           <p className="product-sku">SKU: {product.sku}</p>
         </div>
-        <span className={`product-chain-badge ${isAnchored ? "anchored" : "pending"}`}>
-          {isAnchored ? "⛓ On-Chain" : "⏳ Pending"}
-        </span>
+        <div style={{ display: "flex", flexDirection: "column", gap: 4, alignItems: "flex-end" }}>
+          {/* Existing blockchain anchor badge */}
+          <span className={`product-chain-badge ${isAnchored ? "anchored" : "pending"}`}>
+            {isAnchored ? "⛓ On-Chain" : "⏳ Pending"}
+          </span>
+          {/* Day 3 (P1): Live ProductStatus enum badge */}
+          <span className={`chain-status-badge status-${chainStatus}`}>
+            {chainStatus === "loading" ? "…" : `${statusInfo.icon} ${statusInfo.label}`}
+          </span>
+        </div>
       </div>
 
       {product.description && (
         <p className="product-description">{product.description}</p>
+      )}
+
+      {isDisputed && (
+        <div className="alert alert-error" style={{ padding: "6px 12px", fontSize: "var(--font-size-xs)", margin: "8px 0" }}>
+          ⚠️ This product has been flagged as <strong>DISPUTED</strong> on-chain.
+        </div>
       )}
 
       <div className="product-meta">

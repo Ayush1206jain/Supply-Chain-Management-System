@@ -208,6 +208,57 @@
   color: var(--clr-warning);
 }
 
+/* ── Day 3 (P1): ProductStatus enum badges from the P2 contract ─── */
+.chain-status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: var(--radius-full);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.chain-status-badge.status-CREATED {
+  background: rgba(96, 165, 250, 0.15);
+  color: #60a5fa;
+  border: 1px solid rgba(96, 165, 250, 0.25);
+}
+
+.chain-status-badge.status-IN_TRANSIT {
+  background: rgba(252, 196, 25, 0.15);
+  color: #fbbf24;
+  border: 1px solid rgba(252, 196, 25, 0.25);
+}
+
+.chain-status-badge.status-DELIVERED {
+  background: rgba(52, 211, 153, 0.15);
+  color: #34d399;
+  border: 1px solid rgba(52, 211, 153, 0.25);
+}
+
+.chain-status-badge.status-DISPUTED {
+  background: rgba(248, 113, 113, 0.15);
+  color: #f87171;
+  border: 1px solid rgba(248, 113, 113, 0.25);
+  animation: pulse-border 1.5s infinite;
+}
+
+.chain-status-badge.status-NOT_ANCHORED,
+.chain-status-badge.status-CHAIN_UNAVAILABLE,
+.chain-status-badge.status-loading {
+  background: rgba(148, 163, 184, 0.12);
+  color: var(--clr-text-muted);
+  border: 1px solid rgba(148, 163, 184, 0.15);
+}
+
+@keyframes pulse-border {
+  0%, 100% { border-color: rgba(248, 113, 113, 0.25); }
+  50%       { border-color: rgba(248, 113, 113, 0.7); }
+}
+
 /* ── Empty state ──────────────────────────────────────────────────────── */
 .products-empty {
   text-align: center;
@@ -284,13 +335,11 @@
 
 .products-footer-quote .quote-text {
   font-family: 'Plus Jakarta Sans', sans-serif;
-  font-size: 1.05rem;
+  font-size: 0.9rem; /* Reduced font size */
   font-weight: 700;
   letter-spacing: 0.03em;
   line-height: 1.4;
-  background: linear-gradient(135deg, #60a5fa 0%, #34d399 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+  color: #cbd5e1; /* Light color for dark theme */
   display: inline-flex;
   align-items: center;
   gap: 8px;
@@ -298,7 +347,7 @@
   border: 1px solid rgba(255, 255, 255, 0.08);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  padding: 10px 24px;
+  padding: 8px 20px; /* Slightly tighter padding for smaller font size */
   border-radius: 9999px;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
   transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
@@ -310,13 +359,11 @@
   transform: scale(1.03);
   background-color: rgba(15, 23, 42, 0.85);
   border-color: rgba(255, 255, 255, 0.2);
-  box-shadow: 0 12px 40px rgba(96, 165, 250, 0.25);
+  box-shadow: 0 12px 40px rgba(255, 255, 255, 0.08);
 }
 
 [data-theme="light"] .products-footer-quote .quote-text {
-  background: linear-gradient(135deg, #1d4ed8 0%, #059669 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+  color: #334155; /* Dark color for light theme */
   background-color: rgba(255, 255, 255, 0.75);
   border: 1px solid rgba(15, 23, 42, 0.08);
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.06);
@@ -325,5 +372,5 @@
 [data-theme="light"] .products-footer-quote .quote-text:hover {
   background-color: rgba(255, 255, 255, 0.95);
   border-color: rgba(15, 23, 42, 0.15);
-  box-shadow: 0 12px 40px rgba(29, 78, 216, 0.15);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.08);
 }
