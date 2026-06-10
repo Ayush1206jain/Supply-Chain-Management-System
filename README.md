@@ -327,27 +327,4 @@ Import **`docs/BlockTrace.postman_collection.json`** into Postman.
 
 ---
 
-## 📅 16-Day Roadmap
 
-| Day | Focus | Status |
-|-----|-------|:------:|
-| 1 | Architecture, repo setup, README | ✅ |
-| 2 | DB schema (User, Product, Transfer) | ✅ |
-| 3 | Express server + MongoDB connection | ✅ |
-| 4 | JWT auth + role middleware | ✅ |
-| 5 | Product API + SHA-256 hash | ✅ |
-| 6 | Ownership transfer API + validations | ✅ |
-| 7 | Smart contract design | ✅ |
-| 8 | Hardhat + local deploy | ✅ |
-| 9 | Ethers.js blockchain integration | ✅ |
-| 10 | Audit API (DB + on-chain verify) | ✅ |
-| 11 | Failure handling + retry job | ✅ |
-| 12 | Tests (API + contract) | ✅ |
-| 13 | Frontend: Vite + React, auth, Login/Register | ✅ |
-| 14 | Frontend: Products + Transfers pages | ✅ |
-| 15 | Frontend: Audit Trail + Sync panel | ✅ |
-| 16 | Finalization: README, diagrams, Postman, docs | ✅ |
-
----
-
-*Built over 16 days as a full-stack blockchain integration project — BlockTrace.*
