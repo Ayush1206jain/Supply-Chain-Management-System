@@ -1,0 +1,324 @@
+{
+  "info": {
+    "name": "BlockTrace — Supply Chain API",
+    "_postman_id": "blocktrace-supply-chain-v1",
+    "description": "Complete API collection for BlockTrace blockchain-based supply chain system.\n\nSetup:\n1. Set environment variable `baseUrl = http://localhost:3000`\n2. Run **Login** — token is auto-saved to {{token}}\n3. All protected requests use {{token}} automatically",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:3000", "type": "string" },
+    { "key": "token",   "value": "", "type": "string" },
+    { "key": "productId", "value": "", "type": "string" },
+    { "key": "toUserId",  "value": "", "type": "string" }
+  ],
+  "item": [
+    {
+      "name": "Health",
+      "item": [
+        {
+          "name": "Health Check",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/health",
+            "description": "Returns service uptime and MongoDB connection status. No auth required."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Register",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/api/auth/register",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"manufacturer@test.com\",\n  \"password\": \"password123\",\n  \"role\": \"manufacturer\"\n}"
+            },
+            "description": "Create a new user. Role must be one of: manufacturer, distributor, retailer, admin."
+          },
+          "response": []
+        },
+        {
+          "name": "Register (Admin)",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/api/auth/register",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@test.com\",\n  \"password\": \"password123\",\n  \"role\": \"admin\"\n}"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Register (Distributor)",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/api/auth/register",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"distributor@test.com\",\n  \"password\": \"password123\",\n  \"role\": \"distributor\"\n}"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var json = pm.response.json();",
+                  "if (json.token) {",
+                  "  pm.collectionVariables.set('token', json.token);",
+                  "  console.log('Token saved:', json.token.slice(0,40) + '...');",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/api/auth/login",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"manufacturer@test.com\",\n  \"password\": \"password123\"\n}"
+            },
+            "description": "Login and auto-save JWT to {{token}} collection variable."
+          },
+          "response": []
+        },
+        {
+          "name": "Login (Admin)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var json = pm.response.json();",
+                  "if (json.token) { pm.collectionVariables.set('token', json.token); }"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/api/auth/login",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@test.com\",\n  \"password\": \"password123\"\n}"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Current User (me)",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/auth/me",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "description": "Returns the currently authenticated user's info."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Products",
+      "item": [
+        {
+          "name": "List All Products",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/products",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }]
+          },
+          "response": []
+        },
+        {
+          "name": "Get Product by ID",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/products/{{productId}}",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "description": "Replace {{productId}} with a real MongoDB ObjectId."
+          },
+          "response": []
+        },
+        {
+          "name": "Create Product",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var json = pm.response.json();",
+                  "if (json.product && json.product._id) {",
+                  "  pm.collectionVariables.set('productId', json.product._id);",
+                  "  console.log('Product ID saved:', json.product._id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/api/products",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type",   "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"sku\": \"SKU-LAPTOP-001\",\n  \"name\": \"Dell XPS 15 Laptop\",\n  \"description\": \"High-performance laptop with Intel Core i9\",\n  \"price\": 149999\n}"
+            },
+            "description": "Requires manufacturer or admin role. Auto-saves Product ID to {{productId}}.\nGenerates SHA-256 contentHash and anchors on blockchain if configured."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Transfers",
+      "item": [
+        {
+          "name": "Transfer Ownership",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var json = pm.response.json();",
+                  "if (json.transfer) {",
+                  "  console.log('Transfer status:', json.transfer.syncStatus);",
+                  "  console.log('Blockchain Tx Hash:', json.transfer.blockchainTxHash || 'Not anchored');",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/api/transfers",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type",   "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"productId\": \"{{productId}}\",\n  \"toUserId\": \"{{toUserId}}\"\n}"
+            },
+            "description": "Transfer product ownership. Requester must be the current owner.\nSets toUserId to the MongoDB _id of the recipient user."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Transfer History",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/transfers/product/{{productId}}",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "description": "Chronological ownership history for a product."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Audit",
+      "item": [
+        {
+          "name": "Full Audit Report",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/audit/{{productId}}",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "description": "Full audit report: product snapshot + transfer history + on-chain state + integrity checks (hashConsistency, dbFieldIntegrity, overallVerified)."
+          },
+          "response": []
+        },
+        {
+          "name": "Quick Verify",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/audit/{{productId}}/verify",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "description": "Lightweight response: { verified: bool, hashConsistency, dbFieldIntegrity, chainAvailable, summary }"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Sync (Admin)",
+      "item": [
+        {
+          "name": "Sync Status",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/sync/status",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "description": "Available to all authenticated users. Returns counts: pending, failedRetryable, exhausted."
+          },
+          "response": []
+        },
+        {
+          "name": "Trigger Manual Retry",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/api/sync/trigger",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "description": "Admin only. Runs a one-off retry pass for all failed/pending records. Returns { result, remainingAfter }."
+          },
+          "response": []
+        },
+        {
+          "name": "Failed Transfers",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/sync/failed-transfers?page=1&limit=10",
+              "query": [
+                { "key": "page",  "value": "1" },
+                { "key": "limit", "value": "10" }
+              ]
+            },
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "description": "Admin only. Paginated list of transfers with syncStatus=failed, includes retryCount and retriesRemaining."
+          },
+          "response": []
+        },
+        {
+          "name": "Unanchored Products",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/sync/unanchored-products?page=1&limit=10",
+              "query": [
+                { "key": "page",  "value": "1" },
+                { "key": "limit", "value": "10" }
+              ]
+            },
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "description": "Admin only. Paginated list of products with no blockchainTxHash."
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}

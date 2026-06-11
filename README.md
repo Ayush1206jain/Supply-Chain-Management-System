@@ -1,7 +1,6 @@
-# ⛓ BlockTrace — Blockchain-based Supply Chain Management System
+# BlockTrace — Blockchain Supply Chain Management System
 
-> **Transparent. Tamper-evident. Traceable.**  
-> A full-stack system combining Node.js + MongoDB (off-chain) with Ethereum smart contracts (on-chain) for end-to-end supply chain integrity verification.
+**A production-ready supply chain transparency platform combining blockchain immutability with database performance, featuring multi-signature ownership transfers and zero-knowledge price range proofs.**
 
 ---
 
@@ -26,6 +25,7 @@
 BlockTrace solves the trust problem in supply chains. Any party can verify a product's provenance and ownership history without relying on a single central authority — because critical facts live on an immutable Ethereum smart contract.
 
 **Key capabilities:**
+
 - 🔐 JWT auth with four roles: Manufacturer, Distributor, Retailer, Admin
 - 📦 Product registration with SHA-256 content fingerprint
 - 🔄 Ownership transfers with full chronological history
@@ -60,22 +60,22 @@ BlockTrace solves the trust problem in supply chains. Any party can verify a pro
 
 ### Data Flow
 
-| Step | Action | Off-chain (DB) | On-chain |
-|------|--------|----------------|----------|
-| 1 | Register / Login | JWT issued, role stored | — |
-| 2 | Create product | Product + SHA-256 hash saved | `registerProduct(id, hash)` |
-| 3 | Transfer ownership | Transfer doc + owner updated | `transferOwnership(id, newOwner)` |
-| 4 | Audit lookup | DB snapshot fetched | `getProduct()` view; hashes compared |
-| 5 | Sync retry | Background job picks up `failed` records | Re-submits chain calls ≤ MAX_RETRIES |
+| Step | Action             | Off-chain (DB)                           | On-chain                             |
+| ---- | ------------------ | ---------------------------------------- | ------------------------------------ |
+| 1    | Register / Login   | JWT issued, role stored                  | —                                    |
+| 2    | Create product     | Product + SHA-256 hash saved             | `registerProduct(id, hash)`          |
+| 3    | Transfer ownership | Transfer doc + owner updated             | `transferOwnership(id, newOwner)`    |
+| 4    | Audit lookup       | DB snapshot fetched                      | `getProduct()` view; hashes compared |
+| 5    | Sync retry         | Background job picks up `failed` records | Re-submits chain calls ≤ MAX_RETRIES |
 
 ### Design Decision
 
-| Concern | Off-chain (MongoDB) | On-chain (Ethereum) |
-|---------|--------------------|--------------------|
-| Speed | ✅ Fast | ❌ Slow (block time) |
-| Cost | ✅ Free | ❌ Gas fees |
-| Trust | ❌ Single server | ✅ Decentralised |
-| Rich queries | ✅ Full text, pagination | ❌ Limited |
+| Concern      | Off-chain (MongoDB)      | On-chain (Ethereum)  |
+| ------------ | ------------------------ | -------------------- |
+| Speed        | ✅ Fast                  | ❌ Slow (block time) |
+| Cost         | ✅ Free                  | ❌ Gas fees          |
+| Trust        | ❌ Single server         | ✅ Decentralised     |
+| Rich queries | ✅ Full text, pagination | ❌ Limited           |
 
 **Hybrid:** MongoDB handles operational data; blockchain provides a tamper-evident anchor.
 
@@ -83,15 +83,15 @@ BlockTrace solves the trust problem in supply chains. Any party can verify a pro
 
 ## 🛠 Tech Stack
 
-| Layer | Technology |
-|-------|-----------|
-| Frontend | React 18, Vite, React Router v6, Axios |
-| Backend | Node.js, Express 4, Mongoose 7 |
-| Database | MongoDB |
-| Blockchain | Hardhat, Solidity 0.8.20, Ethers.js v6 |
-| Auth | JSON Web Tokens (JWT), bcrypt |
-| Testing | Jest, Supertest, mongodb-memory-server, Hardhat |
-| Styling | Vanilla CSS (dark + light theme, CSS variables) |
+| Layer      | Technology                                      |
+| ---------- | ----------------------------------------------- |
+| Frontend   | React 18, Vite, React Router v6, Axios          |
+| Backend    | Node.js, Express 4, Mongoose 7                  |
+| Database   | MongoDB                                         |
+| Blockchain | Hardhat, Solidity 0.8.20, Ethers.js v6          |
+| Auth       | JSON Web Tokens (JWT), bcrypt                   |
+| Testing    | Jest, Supertest, mongodb-memory-server, Hardhat |
+| Styling    | Vanilla CSS (dark + light theme, CSS variables) |
 
 ---
 
@@ -143,12 +143,12 @@ supply-chain/
 
 ### Prerequisites
 
-| Tool | Version |
-|------|---------|
-| Node.js | ≥ 18 |
-| npm | ≥ 9 |
+| Tool    | Version                  |
+| ------- | ------------------------ |
+| Node.js | ≥ 18                     |
+| npm     | ≥ 9                      |
 | MongoDB | ≥ 6 (local) or Atlas URI |
-| Git | any |
+| Git     | any                      |
 
 > Blockchain is **optional** — the backend runs in DB-only mode if blockchain env vars are absent.
 
@@ -166,7 +166,7 @@ curl http://localhost:3000/health
 
 ---
 
-### 2 · Blockchain Setup *(optional)*
+### 2 · Blockchain Setup _(optional)_
 
 ```bash
 cd blockchain
@@ -214,18 +214,18 @@ npm run dev                 # → http://localhost:5173
 
 All vars live in `backend/.env` (copy from `backend/.env.example`).
 
-| Variable | Default | Required | Description |
-|----------|---------|:--------:|-------------|
-| `PORT` | `3000` | No | Express port |
-| `NODE_ENV` | `development` | No | `development` / `production` |
-| `MONGODB_URI` | `mongodb://127.0.0.1:27017/supply-chain` | **Yes** | MongoDB connection string |
-| `JWT_SECRET` | — | **Yes** | Long random string for JWT signing |
-| `BLOCKCHAIN_RPC_URL` | — | No | RPC endpoint (Hardhat: `http://127.0.0.1:8545`) |
-| `DEPLOYER_PRIVATE_KEY` | — | No | Deployer wallet key — **never commit a real key** |
-| `CONTRACT_ADDRESS` | — | No | Deployed `SupplyChainRegistry` address |
-| `CHAIN_SYNC_INTERVAL_MS` | `60000` | No | Background retry interval (ms) |
-| `CHAIN_SYNC_MAX_RETRIES` | `5` | No | Max attempts before permanent failure |
-| `CHAIN_SYNC_BATCH_SIZE` | `20` | No | Records per retry pass |
+| Variable                 | Default                                  | Required | Description                                       |
+| ------------------------ | ---------------------------------------- | :------: | ------------------------------------------------- |
+| `PORT`                   | `3000`                                   |    No    | Express port                                      |
+| `NODE_ENV`               | `development`                            |    No    | `development` / `production`                      |
+| `MONGODB_URI`            | `mongodb://127.0.0.1:27017/supply-chain` | **Yes**  | MongoDB connection string                         |
+| `JWT_SECRET`             | —                                        | **Yes**  | Long random string for JWT signing                |
+| `BLOCKCHAIN_RPC_URL`     | —                                        |    No    | RPC endpoint (Hardhat: `http://127.0.0.1:8545`)   |
+| `DEPLOYER_PRIVATE_KEY`   | —                                        |    No    | Deployer wallet key — **never commit a real key** |
+| `CONTRACT_ADDRESS`       | —                                        |    No    | Deployed `SupplyChainRegistry` address            |
+| `CHAIN_SYNC_INTERVAL_MS` | `60000`                                  |    No    | Background retry interval (ms)                    |
+| `CHAIN_SYNC_MAX_RETRIES` | `5`                                      |    No    | Max attempts before permanent failure             |
+| `CHAIN_SYNC_BATCH_SIZE`  | `20`                                     |    No    | Records per retry pass                            |
 
 ---
 
@@ -236,72 +236,79 @@ All vars live in `backend/.env` (copy from `backend/.env.example`).
 
 ### Auth
 
-| Method | Endpoint | Auth | Body | Description |
-|--------|----------|:----:|------|-------------|
-| POST | `/api/auth/register` | — | `{ email, password, role }` | Create account |
-| POST | `/api/auth/login` | — | `{ email, password }` | Returns JWT |
-| GET | `/api/auth/me` | ✅ | — | Current user info |
+| Method | Endpoint             | Auth | Body                        | Description       |
+| ------ | -------------------- | :--: | --------------------------- | ----------------- |
+| POST   | `/api/auth/register` |  —   | `{ email, password, role }` | Create account    |
+| POST   | `/api/auth/login`    |  —   | `{ email, password }`       | Returns JWT       |
+| GET    | `/api/auth/me`       |  ✅  | —                           | Current user info |
 
 ### Products
 
-| Method | Endpoint | Auth | Description |
-|--------|----------|:----:|-------------|
-| GET | `/api/products` | ✅ Any | List all products |
-| GET | `/api/products/:id` | ✅ Any | Get product by ID |
-| POST | `/api/products` | ✅ manufacturer/admin | Create + hash + anchor on-chain |
+| Method | Endpoint            |         Auth          | Description                     |
+| ------ | ------------------- | :-------------------: | ------------------------------- |
+| GET    | `/api/products`     |        ✅ Any         | List all products               |
+| GET    | `/api/products/:id` |        ✅ Any         | Get product by ID               |
+| POST   | `/api/products`     | ✅ manufacturer/admin | Create + hash + anchor on-chain |
 
 **POST `/api/products` body:**
+
 ```json
-{ "sku": "SKU-001", "name": "Product Name", "description": "...", "price": 499.99 }
+{
+  "sku": "SKU-001",
+  "name": "Product Name",
+  "description": "...",
+  "price": 499.99
+}
 ```
 
 ### Transfers
 
-| Method | Endpoint | Auth | Description |
-|--------|----------|:----:|-------------|
-| POST | `/api/transfers` | ✅ (current owner) | Transfer ownership |
-| GET | `/api/transfers/product/:productId` | ✅ Any | Ownership history |
+| Method | Endpoint                            |        Auth        | Description        |
+| ------ | ----------------------------------- | :----------------: | ------------------ |
+| POST   | `/api/transfers`                    | ✅ (current owner) | Transfer ownership |
+| GET    | `/api/transfers/product/:productId` |       ✅ Any       | Ownership history  |
 
 **POST `/api/transfers` body:**
+
 ```json
 { "productId": "<mongoId>", "toUserId": "<mongoId>" }
 ```
 
 ### Audit
 
-| Method | Endpoint | Auth | Description |
-|--------|----------|:----:|-------------|
-| GET | `/api/audit/:productId` | ✅ Any | Full report: product + transfers + chain state + integrity |
-| GET | `/api/audit/:productId/verify` | ✅ Any | `{ verified: bool, summary }` |
+| Method | Endpoint                       |  Auth  | Description                                                |
+| ------ | ------------------------------ | :----: | ---------------------------------------------------------- |
+| GET    | `/api/audit/:productId`        | ✅ Any | Full report: product + transfers + chain state + integrity |
+| GET    | `/api/audit/:productId/verify` | ✅ Any | `{ verified: bool, summary }`                              |
 
 ### Sync
 
-| Method | Endpoint | Auth | Description |
-|--------|----------|:----:|-------------|
-| GET | `/api/sync/status` | ✅ Any | Counts: pending / retryable / exhausted |
-| POST | `/api/sync/trigger` | ✅ admin | Manual retry pass |
-| GET | `/api/sync/failed-transfers` | ✅ admin | Paginated failed transfers |
-| GET | `/api/sync/unanchored-products` | ✅ admin | Paginated unanchored products |
+| Method | Endpoint                        |   Auth   | Description                             |
+| ------ | ------------------------------- | :------: | --------------------------------------- |
+| GET    | `/api/sync/status`              |  ✅ Any  | Counts: pending / retryable / exhausted |
+| POST   | `/api/sync/trigger`             | ✅ admin | Manual retry pass                       |
+| GET    | `/api/sync/failed-transfers`    | ✅ admin | Paginated failed transfers              |
+| GET    | `/api/sync/unanchored-products` | ✅ admin | Paginated unanchored products           |
 
 ### Health
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/health` | Uptime + DB status (no auth) |
+| Method | Endpoint  | Description                  |
+| ------ | --------- | ---------------------------- |
+| GET    | `/health` | Uptime + DB status (no auth) |
 
 ---
 
 ## 👥 Role Permissions
 
-| Action | Manufacturer | Distributor | Retailer | Admin |
-|--------|:-----------:|:-----------:|:--------:|:-----:|
-| Register / Login | ✅ | ✅ | ✅ | ✅ |
-| View products & transfers | ✅ | ✅ | ✅ | ✅ |
-| Create product | ✅ | ❌ | ❌ | ✅ |
-| Transfer ownership | ✅ (if owner) | ✅ (if owner) | ✅ (if owner) | ✅ |
-| Audit & verify | ✅ | ✅ | ✅ | ✅ |
-| View sync counters | ✅ | ✅ | ✅ | ✅ |
-| Trigger sync / admin tables | ❌ | ❌ | ❌ | ✅ |
+| Action                      | Manufacturer  |  Distributor  |   Retailer    | Admin |
+| --------------------------- | :-----------: | :-----------: | :-----------: | :---: |
+| Register / Login            |      ✅       |      ✅       |      ✅       |  ✅   |
+| View products & transfers   |      ✅       |      ✅       |      ✅       |  ✅   |
+| Create product              |      ✅       |      ❌       |      ❌       |  ✅   |
+| Transfer ownership          | ✅ (if owner) | ✅ (if owner) | ✅ (if owner) |  ✅   |
+| Audit & verify              |      ✅       |      ✅       |      ✅       |  ✅   |
+| View sync counters          |      ✅       |      ✅       |      ✅       |  ✅   |
+| Trigger sync / admin tables |      ❌       |      ❌       |      ❌       |  ✅   |
 
 ---
 
@@ -326,5 +333,3 @@ Import **`docs/BlockTrace.postman_collection.json`** into Postman.
 3. All protected requests use `{{token}}` automatically
 
 ---
-
-
