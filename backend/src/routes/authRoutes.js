@@ -15,6 +15,6 @@ router.get("/me", authRequired, (req, res) => {
     user: req.user,
   });
 });
+router.get("/users", authRequired, authController.listUsers);
 
 module.exports = router;
-

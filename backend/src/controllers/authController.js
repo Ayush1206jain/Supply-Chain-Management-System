@@ -87,8 +87,32 @@ async function login(req, res) {
   });
 }
 
+async function listUsers(req, res) {
+  const filter = {};
+
+  if (req.query.role) {
+    if (!validateRole(req.query.role)) {
+      return res.status(400).json({
+        success: false,
+        message: `Invalid role. Allowed: ${ROLES.join(", ")}`,
+      });
+    }
+    filter.role = req.query.role;
+  }
+
+  const users = await User.find(filter)
+    .select("name email role")
+    .sort({ role: 1, name: 1, email: 1 });
+
+  return res.status(200).json({
+    success: true,
+    count: users.length,
+    users,
+  });
+}
+
 module.exports = {
   register,
   login,
+  listUsers,
 };
-

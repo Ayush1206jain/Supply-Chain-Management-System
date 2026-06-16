@@ -6,6 +6,7 @@ const productRoutes = require("./routes/productRoutes");
 const transferRoutes = require("./routes/transferRoutes");
 const auditRoutes = require("./routes/auditRoutes");
 const syncRoutes  = require("./routes/syncRoutes");
+const disputeRoutes = require("./routes/disputeRoutes");
 
 const app = express();
 
@@ -17,6 +18,7 @@ app.use("/api/products", productRoutes);
 app.use("/api/transfers", transferRoutes);
 app.use("/api/audit", auditRoutes);
 app.use("/api/sync",  syncRoutes);
+app.use("/api/disputes", disputeRoutes);
 
 app.use((req, res) => {
   res.status(404).json({

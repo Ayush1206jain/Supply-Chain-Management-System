@@ -26,6 +26,7 @@ afterAll(async () => {
 describe("POST /api/auth/register", () => {
   it("creates a new user and returns 201", async () => {
     const res = await request(app).post("/api/auth/register").send({
+      name: "Test Manufacturer",
       email: "mfr@test.com",
       password: "Secret123!",
       role: "manufacturer",
@@ -40,7 +41,7 @@ describe("POST /api/auth/register", () => {
   });
 
   it("rejects duplicate email with 409", async () => {
-    const payload = { email: "dup@test.com", password: "pw", role: "retailer" };
+    const payload = { name: "Test Retailer", email: "dup@test.com", password: "pw", role: "retailer" };
     await request(app).post("/api/auth/register").send(payload);
     const res = await request(app).post("/api/auth/register").send(payload);
 
@@ -75,6 +76,7 @@ describe("POST /api/auth/login", () => {
   beforeEach(async () => {
     // seed one user
     await request(app).post("/api/auth/register").send({
+      name: "Test Distributor",
       email: "user@test.com",
       password: "Correct99!",
       role: "distributor",
