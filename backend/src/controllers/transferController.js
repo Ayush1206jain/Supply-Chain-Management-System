@@ -1,7 +1,7 @@
 const mongoose = require("mongoose");
 const { Product, Transfer, User } = require("../models");
 const { supportsTransactions } = require("../config/db");
-const { transferOwnershipOnChain, confirmTransferOnChain } = require("../utils/chainAdapter");
+const { initiateTransferOnChain, confirmTransferOnChain } = require("../utils/chainAdapter");
 
 async function createTransfer(req, res) {
   const { productId, toUserId } = req.body || {};
@@ -57,13 +57,35 @@ async function createTransfer(req, res) {
     });
   }
 
-  // Prefer transactions when supported; otherwise use an atomic owner-check update
+  const pendingTransfer = await Transfer.findOne({
+    product: product._id,
+    receiverConfirmed: false,
+  });
+
+  if (pendingTransfer) {
+    return res.status(409).json({
+      success: false,
+      message: "This product already has a pending transfer",
+    });
+  }
+
+  // Prefer transactions when supported; otherwise create the transfer with an
+  // owner-check immediately before insert. Product ownership moves on confirm.
   if (supportsTransactions()) {
     const session = await mongoose.startSession();
     try {
       let createdTransfer;
 
       await session.withTransaction(async () => {
+        const latestProduct = await Product.findOne({
+          _id: product._id,
+          owner: actorId,
+        }).session(session);
+
+        if (!latestProduct) {
+          throw new Error("OWNER_CHANGED");
+        }
+
         createdTransfer = await Transfer.create(
           [
             {
@@ -74,9 +96,6 @@ async function createTransfer(req, res) {
           ],
           { session },
         );
-
-        product.owner = toUser._id;
-        await product.save({ session });
       });
 
       const transfer = createdTransfer[0];
@@ -84,7 +103,7 @@ async function createTransfer(req, res) {
         .populate("owner", "email role")
         .populate("createdBy", "email role");
 
-      const txHash = await transferOwnershipOnChain(product, toUser._id);
+      const txHash = await initiateTransferOnChain(product, toUser._id);
 
       let syncStatus;
       if (txHash) {
@@ -99,25 +118,26 @@ async function createTransfer(req, res) {
 
       return res.status(201).json({
         success: true,
-        message: "Ownership transferred successfully",
+        message: "Transfer initiated. Waiting for recipient confirmation.",
         transfer,
         product: updatedProduct,
         blockchainSyncStatus: syncStatus,
       });
+    } catch (err) {
+      if (err.message === "OWNER_CHANGED") {
+        return res.status(403).json({
+          success: false,
+          message: "Only current owner can transfer this product",
+        });
+      }
+      throw err;
     } finally {
       await session.endSession();
     }
   }
 
-  // Fallback for standalone MongoDB: do an atomic owner-check & update, then create transfer
-  // This avoids transactions while still preventing a simple race on owner field.
-  const updatedProduct = await Product.findOneAndUpdate(
-    { _id: product._id, owner: actorId },
-    { owner: toUser._id },
-    { new: true },
-  );
-
-  if (!updatedProduct) {
+  const ownedProduct = await Product.findOne({ _id: product._id, owner: actorId });
+  if (!ownedProduct) {
     return res.status(403).json({
       success: false,
       message: "Only current owner can transfer this product",
@@ -130,7 +150,7 @@ async function createTransfer(req, res) {
     toUser: toUser._id,
   });
 
-  const txHash = await transferOwnershipOnChain(updatedProduct, toUser._id);
+  const txHash = await initiateTransferOnChain(ownedProduct, toUser._id);
   let syncStatus;
   if (txHash) {
     transfer.blockchainTxHash = txHash;
@@ -148,10 +168,46 @@ async function createTransfer(req, res) {
 
   return res.status(201).json({
     success: true,
-    message: "Ownership transferred successfully",
+    message: "Transfer initiated. Waiting for recipient confirmation.",
     transfer,
     product: populatedProduct,
     blockchainSyncStatus: syncStatus,
+  });
+}
+
+async function listTransfers(req, res) {
+  const filter = {};
+
+  if (req.query.toUserId === "me") {
+    filter.toUser = req.user.id;
+  } else if (req.query.toUserId && mongoose.isValidObjectId(req.query.toUserId)) {
+    filter.toUser = req.query.toUserId;
+  }
+
+  if (req.query.fromUserId === "me") {
+    filter.fromUser = req.user.id;
+  } else if (req.query.fromUserId && mongoose.isValidObjectId(req.query.fromUserId)) {
+    filter.fromUser = req.query.fromUserId;
+  }
+
+  if (req.query.receiverConfirmed !== undefined) {
+    filter.receiverConfirmed = req.query.receiverConfirmed === "true";
+  }
+
+  if (req.query.syncStatus) {
+    filter.syncStatus = req.query.syncStatus;
+  }
+
+  const transfers = await Transfer.find(filter)
+    .populate("product", "sku name owner")
+    .populate("fromUser", "email role name")
+    .populate("toUser", "email role name")
+    .sort({ createdAt: -1 });
+
+  return res.status(200).json({
+    success: true,
+    count: transfers.length,
+    transfers,
   });
 }
 
@@ -167,8 +223,8 @@ async function listTransfersByProduct(req, res) {
   }
 
   const transfers = await Transfer.find({ product: productId })
-    .populate("fromUser", "email role")
-    .populate("toUser", "email role")
+    .populate("fromUser", "name email role")
+    .populate("toUser", "name email role")
     .sort({ createdAt: -1 });
 
   return res.status(200).json({
@@ -251,6 +307,7 @@ async function confirmTransfer(req, res) {
 
 module.exports = {
   createTransfer,
+  listTransfers,
   listTransfersByProduct,
   confirmTransfer,
 };

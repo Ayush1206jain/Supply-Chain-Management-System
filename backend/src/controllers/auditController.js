@@ -41,8 +41,8 @@ function normaliseChainHash(bytes32Hex) {
 async function buildAuditReport(productId) {
   // ── 1. Fetch product from DB ──────────────────────────────────────────────
   const product = await Product.findById(productId)
-    .populate("owner", "email role")
-    .populate("createdBy", "email role");
+    .populate("owner", "name email role")
+    .populate("createdBy", "name email role");
 
   if (!product) {
     return null; // caller handles 404
@@ -50,16 +50,33 @@ async function buildAuditReport(productId) {
 
   // ── 2. Fetch full transfer history ────────────────────────────────────────
   const transfers = await Transfer.find({ product: productId })
-    .populate("fromUser", "email role")
-    .populate("toUser", "email role")
+    .populate("fromUser", "name email role")
+    .populate("toUser", "name email role")
     .sort({ createdAt: 1 }); // chronological
 
   // ── 3. Fetch on-chain state (read-only view — no gas) ────────────────────
+  const { getChainClient } = require("../config/blockchain");
+  const client = getChainClient();
+  let isChainReachable = false;
+  if (client) {
+    try {
+      await client.provider.getBlockNumber();
+      isChainReachable = true;
+    } catch (err) {
+      // Just log/ignore so audit report still builds
+    }
+  }
+
   const chainData = await getProductFromChain(product);
 
   // ── 4. Hash consistency check ────────────────────────────────────────────
   let hashConsistency;
-  if (!chainData) {
+  if (!isChainReachable) {
+    hashConsistency = {
+      status: "chain_unavailable",
+      message: "Blockchain node is offline or unreachable.",
+    };
+  } else if (!chainData) {
     hashConsistency = {
       status: "not_anchored", // product not yet registered on-chain
       message: "Product has no on-chain record. Register it first.",
@@ -103,6 +120,7 @@ async function buildAuditReport(productId) {
       name: product.name,
       description: product.description,
       price: product.price,
+      owner: product.owner,
       currentOwner: product.owner,
       createdBy: product.createdBy,
       createdAt: product.createdAt,
@@ -111,25 +129,28 @@ async function buildAuditReport(productId) {
       blockchainTxHash: product.blockchainTxHash,
     },
     transferHistory: transfers.map((t) => ({
+      _id: t._id,
       id: t._id,
+      fromUser: t.fromUser,
+      toUser: t.toUser,
       from: t.fromUser,
       to: t.toUser,
       blockchainTxHash: t.blockchainTxHash,
       syncStatus: t.syncStatus,
+      receiverConfirmed: t.receiverConfirmed,
+      lifecycleStatus: t.receiverConfirmed ? "confirmed" : "awaiting_receiver",
       timestamp: t.createdAt,
+      createdAt: t.createdAt,
     })),
-    chainState: chainData
-      ? {
-          available: true,
-          contentHashOnChain: chainData.contentHashOnChain,
-          ownerAddress: chainData.ownerAddress,
-          registeredAt: new Date(chainData.registeredAt * 1000).toISOString(),
-          registeredAtUnix: chainData.registeredAt,
-        }
-      : {
-          available: false,
-          reason: "Chain not configured or product not registered on-chain",
-        },
+    chainState: {
+      available: !!chainData,
+      chainOnline: isChainReachable,
+      contentHashOnChain: chainData?.contentHashOnChain ?? null,
+      ownerAddress: chainData?.ownerAddress ?? null,
+      registeredAt: chainData ? new Date(chainData.registeredAt * 1000).toISOString() : null,
+      registeredAtUnix: chainData?.registeredAt ?? null,
+      reason: chainData ? null : (isChainReachable ? "Product not registered on-chain" : "Blockchain node is offline"),
+    },
     integrity: {
       hashConsistency,   // DB vs chain
       dbFieldIntegrity,  // recomputed vs stored in DB

@@ -29,9 +29,10 @@ afterAll(async () => {
 
 async function registerAndLogin(role, prefix) {
   const email = `${prefix}@audit-test.com`;
+  const name = `${prefix} Name`;
   await request(app)
     .post("/api/auth/register")
-    .send({ email, password: "Pass123!", role });
+    .send({ name, email, password: "Pass123!", role });
   const res = await request(app)
     .post("/api/auth/login")
     .send({ email, password: "Pass123!" });

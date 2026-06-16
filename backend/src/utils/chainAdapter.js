@@ -138,6 +138,44 @@ async function transferOwnershipOnChain(product, toUserId) {
 }
 
 /**
+ * Starts a maker-checker transfer on-chain. Ownership remains with the current
+ * owner until the receiver confirms the transfer.
+ *
+ * @param {object} product  - Mongoose Product document
+ * @param {string} toUserId - MongoDB ObjectId of the intended receiver
+ * @returns {Promise<string|null>} tx hash or null
+ */
+async function initiateTransferOnChain(product, toUserId) {
+  const client = getChainClient();
+  if (!client) {
+    console.log("[chain] Blockchain not configured - skipping initiateTransfer");
+    return null;
+  }
+
+  try {
+    const productIdBytes32 = idToBytes32(product._id);
+    const newOwnerAddress = userIdToAddress(toUserId);
+
+    const tx = await client.contract.initiateTransfer(
+      productIdBytes32,
+      newOwnerAddress
+    );
+    const receipt = await tx.wait();
+
+    console.log(
+      `[chain] Transfer for ${product._id} initiated on-chain -> ${newOwnerAddress}. txHash: ${receipt.hash}`
+    );
+    return receipt.hash;
+  } catch (err) {
+    console.error(
+      `[chain] initiateTransfer failed for product ${product._id}:`,
+      err.message
+    );
+    return null;
+  }
+}
+
+/**
  * Reads a product's on-chain record for audit / verification purposes.
  * Uses the view function — no gas, no tx.
  *
@@ -245,10 +283,45 @@ async function getPendingTransferFromChain(product) {
   }
 }
 
+/**
+ * Flags a product as DISPUTED on-chain by calling flagDispute().
+ * Only the admin should call this after reviewing a dispute report.
+ *
+ * @param {object} product - Mongoose Product document (must have _id)
+ * @returns {Promise<string|null>} tx hash or null
+ */
+async function flagDisputeOnChain(product) {
+  const client = getChainClient();
+  if (!client) {
+    console.log("[chain] Blockchain not configured — skipping flagDispute");
+    return null;
+  }
+
+  try {
+    const productIdBytes32 = idToBytes32(product._id);
+    const tx = await client.contract.flagDispute(productIdBytes32);
+    const receipt = await tx.wait();
+
+    console.log(
+      `[chain] Product ${product._id} flagged as DISPUTED on-chain. txHash: ${receipt.hash}`
+    );
+    return receipt.hash;
+  } catch (err) {
+    console.error(
+      `[chain] flagDispute failed for product ${product._id}:`,
+      err.message
+    );
+    return null;
+  }
+}
+
 module.exports = {
   registerProductOnChain,
   transferOwnershipOnChain,
+  initiateTransferOnChain,
   getProductFromChain,
   confirmTransferOnChain,
   getPendingTransferFromChain,
+  flagDisputeOnChain,
 };
+

@@ -24,7 +24,8 @@
 const { Product, Transfer } = require("../models");
 const {
   registerProductOnChain,
-  transferOwnershipOnChain,
+  initiateTransferOnChain,
+  confirmTransferOnChain,
 } = require("./chainAdapter");
 
 // ─── config ──────────────────────────────────────────────────────────────────
@@ -77,7 +78,9 @@ async function retryFailedTransfers() {
         `(attempt ${transfer.retryCount + 1}/${MAX_RETRIES})…`
     );
 
-    const txHash = await transferOwnershipOnChain(product, transfer.toUser);
+    const txHash = transfer.receiverConfirmed
+      ? await confirmTransferOnChain(product)
+      : await initiateTransferOnChain(product, transfer.toUser);
     transfer.retryCount += 1;
 
     if (txHash) {

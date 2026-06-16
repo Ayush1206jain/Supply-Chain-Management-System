@@ -54,8 +54,8 @@ async function createProduct(req, res) {
 
 async function listProducts(req, res) {
   const products = await Product.find()
-    .populate("owner", "email role")
-    .populate("createdBy", "email role")
+    .populate("owner", "name email role")
+    .populate("createdBy", "name email role")
     .sort({ createdAt: -1 });
 
   return res.status(200).json({
@@ -68,8 +68,8 @@ async function listProducts(req, res) {
 async function getProductById(req, res) {
   const { id } = req.params;
   const product = await Product.findById(id)
-    .populate("owner", "email role")
-    .populate("createdBy", "email role");
+    .populate("owner", "name email role")
+    .populate("createdBy", "name email role");
 
   if (!product) {
     return res.status(404).json({

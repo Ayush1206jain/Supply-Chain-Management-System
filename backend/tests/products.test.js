@@ -30,9 +30,10 @@ afterAll(async () => {
 /** Register + login → return token */
 async function loginAs(role = "manufacturer") {
   const email = `${role}_${Date.now()}@test.com`;
+  const name = `${role} Name`;
   await request(app)
     .post("/api/auth/register")
-    .send({ email, password: "Pass123!", role });
+    .send({ name, email, password: "Pass123!", role });
   const res = await request(app)
     .post("/api/auth/login")
     .send({ email, password: "Pass123!" });

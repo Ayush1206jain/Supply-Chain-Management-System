@@ -29,9 +29,10 @@ afterAll(async () => {
 
 async function registerAndLogin(role, emailPrefix) {
   const email = `${emailPrefix}@test.com`;
+  const name = `${emailPrefix} Name`;
   await request(app)
     .post("/api/auth/register")
-    .send({ email, password: "Pass123!", role });
+    .send({ name, email, password: "Pass123!", role });
   const res = await request(app)
     .post("/api/auth/login")
     .send({ email, password: "Pass123!" });
@@ -81,7 +82,7 @@ describe("POST /api/transfers", () => {
     product = await createProduct(mfrToken, "SKU-T-001");
   });
 
-  it("transfers product ownership and returns 201", async () => {
+  it("initiates a pending transfer and returns 201", async () => {
     const res = await request(app)
       .post("/api/transfers")
       .set("Authorization", `Bearer ${mfrToken}`)
@@ -89,10 +90,26 @@ describe("POST /api/transfers", () => {
 
     expect(res.status).toBe(201);
     expect(res.body.success).toBe(true);
-    // New owner should be the distributor
-    expect(res.body.product.owner._id).toBe(distId);
-    // blockchainSyncStatus is present (either 'failed' since no chain is configured)
+    expect(res.body.transfer.receiverConfirmed).toBe(false);
+    // Owner remains the manufacturer until the recipient confirms.
+    expect(res.body.product.owner._id).toBe(mfrId);
     expect(["confirmed", "failed"]).toContain(res.body.blockchainSyncStatus);
+  });
+
+  it("lists pending inbound transfers for the receiver", async () => {
+    await request(app)
+      .post("/api/transfers")
+      .set("Authorization", `Bearer ${mfrToken}`)
+      .send({ productId: product._id, toUserId: distId });
+
+    const res = await request(app)
+      .get("/api/transfers?toUserId=me&receiverConfirmed=false")
+      .set("Authorization", `Bearer ${distToken}`);
+
+    expect(res.status).toBe(200);
+    expect(res.body.success).toBe(true);
+    expect(res.body.count).toBe(1);
+    expect(res.body.transfers[0].product._id).toBe(product._id);
   });
 
   it("rejects transfer by non-owner with 403", async () => {
@@ -281,4 +298,3 @@ describe("POST /api/transfers/confirm", () => {
     expect(res.body.success).toBe(false);
   });
 });
-

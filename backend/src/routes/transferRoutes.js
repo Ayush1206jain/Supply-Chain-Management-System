@@ -7,6 +7,7 @@ const router = express.Router();
 
 // ─── Existing routes (unchanged) ─────────────────────────────────────────────
 router.post("/", authRequired, transferController.createTransfer);
+router.get("/", authRequired, transferController.listTransfers);
 router.get(
   "/product/:productId",
   authRequired,
