@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { getAuditReport } from '../../api/auditService';
 import { listProducts, getProductStatus } from '../../api/productService';
@@ -15,8 +15,13 @@ import './Audit.css';
 export default function AuditPage() {
   const { user } = useAuth();
 
+  // Product list for the dropdown
+  const [allProducts, setAllProducts] = useState([]);
+  const [loadingProducts, setLoadingProducts] = useState(true);
+
   // Search / input state
   const [productId, setProductId] = useState('');
+  const [manualMode, setManualMode] = useState(false);
   const [loading, setLoading]   = useState(false);
   const [error, setError]       = useState('');
 
@@ -25,6 +30,23 @@ export default function AuditPage() {
 
   // Day 3 (P1): Live chain status from P2 endpoint
   const [chainStatusData, setChainStatusData] = useState(null);
+
+  // Fetch all products on mount for the dropdown
+  const fetchAllProducts = useCallback(async () => {
+    try {
+      setLoadingProducts(true);
+      const data = await listProducts();
+      setAllProducts(data.products ?? []);
+    } catch {
+      setAllProducts([]);
+    } finally {
+      setLoadingProducts(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchAllProducts();
+  }, [fetchAllProducts]);
 
   async function handleSearch(e) {
     e.preventDefault();
@@ -70,8 +92,21 @@ export default function AuditPage() {
     return new Date(iso).toLocaleString();
   }
 
+  function getTransferUiStatus(tx) {
+    const receiverConfirmed = Boolean(tx.receiverConfirmed);
+    return {
+      cls: receiverConfirmed ? 'confirmed' : 'pending',
+      label: receiverConfirmed ? 'Receiver confirmed' : 'Awaiting receiver',
+      syncLabel: tx.syncStatus
+        ? `Chain sync: ${tx.syncStatus}`
+        : 'Chain sync: pending',
+    };
+  }
+
   const integrity = report?.integrity;
   const overallOk = integrity?.overallVerified;
+  // A DISPUTED product always overrides the green banner regardless of hash match
+  const isDisputed = chainStatusData?.chainStatus === 'DISPUTED';
 
   return (
     <div className="audit-page">
@@ -88,28 +123,67 @@ export default function AuditPage() {
 
       {/* ── Search Form ── */}
       <form className="audit-search-card card" onSubmit={handleSearch} id="audit-search-form">
-        <label className="form-label" htmlFor="audit-product-id">
-          Product ID (MongoDB ObjectId)
+        <label className="form-label" htmlFor="audit-product-select">
+          Select a Product to Audit
         </label>
-        <div className="audit-search-row">
-          <input
-            id="audit-product-id"
-            className="form-input"
-            placeholder="e.g. 6643f2a1c89b4d001e3f5bc0"
-            value={productId}
-            onChange={e => setProductId(e.target.value)}
-            autoComplete="off"
-            spellCheck={false}
-          />
-          <button
-            type="submit"
-            className="btn btn-primary"
-            id="btn-audit-search"
-            disabled={loading || !productId.trim()}
-          >
-            {loading ? <span className="spinner" /> : '🔍 Inspect'}
-          </button>
-        </div>
+
+        {!manualMode ? (
+          <div className="audit-search-row">
+            <select
+              id="audit-product-select"
+              className="form-input form-select"
+              value={productId}
+              onChange={e => setProductId(e.target.value)}
+              disabled={loadingProducts}
+            >
+              <option value="">
+                {loadingProducts ? 'Loading products…' : '— Choose a product —'}
+              </option>
+              {allProducts.map((p) => (
+                <option key={p._id} value={p._id}>
+                  {p.name} ({p.sku}) — Owner: {p.owner?.name || p.owner?.email || 'Unknown'}
+                </option>
+              ))}
+            </select>
+            <button
+              type="submit"
+              className="btn btn-primary"
+              id="btn-audit-search"
+              disabled={loading || !productId.trim()}
+            >
+              {loading ? <span className="spinner" /> : '🔍 Inspect'}
+            </button>
+          </div>
+        ) : (
+          <div className="audit-search-row">
+            <input
+              id="audit-product-id"
+              className="form-input"
+              placeholder="e.g. 6643f2a1c89b4d001e3f5bc0"
+              value={productId}
+              onChange={e => setProductId(e.target.value)}
+              autoComplete="off"
+              spellCheck={false}
+            />
+            <button
+              type="submit"
+              className="btn btn-primary"
+              id="btn-audit-search"
+              disabled={loading || !productId.trim()}
+            >
+              {loading ? <span className="spinner" /> : '🔍 Inspect'}
+            </button>
+          </div>
+        )}
+
+        <button
+          type="button"
+          className="btn-link audit-toggle-mode"
+          onClick={() => { setManualMode(prev => !prev); setProductId(''); }}
+        >
+          {manualMode ? '← Back to product list' : 'Or enter Product ID manually'}
+        </button>
+
         {error && (
           <div className="alert alert-error" id="audit-error">
             ⚠ {error}
@@ -121,20 +195,37 @@ export default function AuditPage() {
       {report && (
         <div className="audit-results animate-slide-up">
 
-          {/* Overall Verdict Banner */}
-          <div className={`verdict-banner ${overallOk ? 'verdict-banner-ok' : 'verdict-banner-fail'}`} id="audit-verdict-banner">
-            <span className="verdict-banner-icon">{overallOk ? '✅' : '❌'}</span>
-            <div>
-              <p className="verdict-banner-title">
-                {overallOk ? 'Product Verified — Integrity Confirmed' : 'Integrity Check Failed'}
-              </p>
-              <p className="verdict-banner-sub">
-                {overallOk
-                  ? 'DB data, on-chain hash, and field fingerprint all match.'
-                  : 'One or more integrity checks did not pass. Review details below.'}
-              </p>
+          {/* ── DISPUTED override banner — shown on top of everything ── */}
+          {isDisputed && (
+            <div className="verdict-banner verdict-banner-disputed" id="audit-disputed-banner">
+              <span className="verdict-banner-icon">🔴</span>
+              <div>
+                <p className="verdict-banner-title">DISPUTED — Stolen / Counterfeit — Transfer Blocked On-Chain</p>
+                <p className="verdict-banner-sub">
+                  This product has been flagged as <strong>DISPUTED</strong> by an admin following a
+                  stolen or counterfeit report. All further transfers are locked on the blockchain
+                  until this dispute is resolved.
+                </p>
+              </div>
             </div>
-          </div>
+          )}
+
+          {/* Overall Verdict Banner — hidden if DISPUTED */}
+          {!isDisputed && (
+            <div className={`verdict-banner ${overallOk ? 'verdict-banner-ok' : 'verdict-banner-fail'}`} id="audit-verdict-banner">
+              <span className="verdict-banner-icon">{overallOk ? '✅' : '❌'}</span>
+              <div>
+                <p className="verdict-banner-title">
+                  {overallOk ? 'Product Verified — Integrity Confirmed' : 'Integrity Check Failed'}
+                </p>
+                <p className="verdict-banner-sub">
+                  {overallOk
+                    ? 'DB data, on-chain hash, and field fingerprint all match.'
+                    : 'One or more integrity checks did not pass. Review details below.'}
+                </p>
+              </div>
+            </div>
+          )}
 
           <div className="audit-grid">
             {/* ── Left Column ── */}
@@ -191,14 +282,14 @@ export default function AuditPage() {
                       <p className="integrity-label">Chain Availability</p>
                       <p className="integrity-hint">Whether the blockchain node was reachable</p>
                     </div>
-                    <span className={`verdict-chip ${integrity?.chainAvailable ? 'verdict-ok' : 'verdict-pending'}`}>
-                      {integrity?.chainAvailable ? '✔ Online' : '⚡ Offline'}
+                    <span className={`verdict-chip ${report.chainState?.chainOnline ? 'verdict-ok' : 'verdict-pending'}`}>
+                      {report.chainState?.chainOnline ? '✔ Online' : '⚡ Offline'}
                     </span>
                   </div>
                 </div>
 
                 {/* On-chain state detail */}
-                {report.chainState && (
+                {report.chainState?.available && (
                   <div className="chain-state-box">
                     <p className="chain-state-title">On-Chain State</p>
                     <dl className="audit-dl audit-dl-compact">
@@ -234,7 +325,7 @@ export default function AuditPage() {
                     </dl>
                     {chainStatusData.chainStatus === 'DISPUTED' && (
                       <div className="alert alert-error" style={{ marginTop: 8, padding: '6px 10px', fontSize: '0.75rem' }}>
-                        ⚠️ <strong>DISPUTED:</strong> This product has been flagged on-chain. Investigate before further transfers.
+                        ⚠️ <strong>DISPUTED (Stolen / Counterfeit):</strong> This product has been flagged on-chain. Investigate before any further action.
                       </div>
                     )}
                     {chainStatusData.chainStatus === 'IN_TRANSIT' && chainStatusData.pendingTransfer && (
@@ -262,35 +353,49 @@ export default function AuditPage() {
                   </div>
                 ) : (
                   <ol className="transfer-timeline">
-                    {report.transferHistory.map((tx, idx) => (
-                      <li key={tx._id || idx} className="timeline-item">
+                    {report.transferHistory.map((tx, idx) => {
+                      const transferStatus = getTransferUiStatus(tx);
+                      return (
+                      <li key={tx._id || tx.id || idx} className="timeline-item">
                         <div className="timeline-dot" />
                         <div className="timeline-content card">
                           <div className="timeline-header">
                             <span className="timeline-step">#{idx + 1}</span>
-                            <span className={`status-dot status-${tx.syncStatus}`} title={tx.syncStatus} />
-                            <span className="timeline-status-label">{tx.syncStatus}</span>
+                            <span className={`status-dot status-${transferStatus.cls}`} title={transferStatus.label} />
+                            <span className="timeline-status-label">{transferStatus.label}</span>
+                            <span className={`sync-status-inline sync-${tx.syncStatus || 'pending'}`}>
+                              {transferStatus.syncLabel}
+                            </span>
                           </div>
                           <div className="timeline-flow">
                             <div className="timeline-user">
-                              <span className="timeline-user-email">{tx.fromUser?.email || '—'}</span>
+                              <span className="timeline-user-email" title={tx.fromUser?.email}>
+                                {tx.fromUser?.name || tx.fromUser?.email || '—'}
+                              </span>
                               <span className="timeline-user-role">{tx.fromUser?.role}</span>
                             </div>
                             <span className="timeline-arrow">→</span>
                             <div className="timeline-user">
-                              <span className="timeline-user-email">{tx.toUser?.email || '—'}</span>
+                              <span className="timeline-user-email" title={tx.toUser?.email}>
+                                {tx.toUser?.name || tx.toUser?.email || '—'}
+                              </span>
                               <span className="timeline-user-role">{tx.toUser?.role}</span>
                             </div>
                           </div>
-                          <p className="timeline-date">{formatDate(tx.createdAt)}</p>
+                          <p className="timeline-date">
+                            <strong style={{ opacity: 0.7 }}>Transferred on:</strong>{' '}
+                            {formatDate(tx.createdAt)}
+                          </p>
                           {tx.blockchainTxHash && (
                             <p className="timeline-txhash">
+                              <strong style={{ opacity: 0.7 }}>Tx Hash:</strong>{' '}
                               ⛓ <code>{shortHash(tx.blockchainTxHash)}</code>
                             </p>
                           )}
                         </div>
                       </li>
-                    ))}
+                      );
+                    })}
                   </ol>
                 )}
               </section>

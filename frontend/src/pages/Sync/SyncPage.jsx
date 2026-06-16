@@ -6,6 +6,11 @@ import {
   getFailedTransfers,
   getUnanchoredProducts,
 } from '../../api/syncService';
+import {
+  listDisputes,
+  flagDisputeReport,
+  rejectDisputeReport,
+} from '../../api/disputeService';
 import './Sync.css';
 
 /**
@@ -41,6 +46,13 @@ export default function SyncPage() {
   const [unanchoredTotal, setUnanchoredTotal] = useState(0);
   const [unanchoredLoading, setUnanchoredLoading] = useState(false);
 
+  // Dispute reports
+  const [disputes, setDisputes]             = useState([]);
+  const [disputeTotal, setDisputeTotal]     = useState(0);
+  const [disputeLoading, setDisputeLoading] = useState(false);
+  const [disputeAction, setDisputeAction]   = useState(''); // reportId being acted on
+  const [disputeResult, setDisputeResult]   = useState(null);
+
   const PAGE_SIZE = 5;
 
   // ── Fetch sync status ──────────────────────────────────────────
@@ -49,7 +61,7 @@ export default function SyncPage() {
     setStatusError('');
     try {
       const data = await getSyncStatus();
-      setStatus(data);
+      setStatus(data.syncStatus || data);
     } catch (err) {
       setStatusError(err.response?.data?.message || 'Failed to fetch sync status.');
     } finally {
@@ -87,6 +99,21 @@ export default function SyncPage() {
     }
   }, [isAdmin]);
 
+  // ── Fetch pending dispute reports ─────────────────────────────
+  const fetchDisputes = useCallback(async () => {
+    if (!isAdmin) return;
+    setDisputeLoading(true);
+    try {
+      const data = await listDisputes({ status: 'pending', limit: 20 });
+      setDisputes(data.reports || []);
+      setDisputeTotal(data.total || 0);
+    } catch {
+      setDisputes([]);
+    } finally {
+      setDisputeLoading(false);
+    }
+  }, [isAdmin]);
+
   useEffect(() => {
     fetchStatus();
   }, [fetchStatus]);
@@ -98,6 +125,10 @@ export default function SyncPage() {
   useEffect(() => {
     fetchUnanchored(unanchoredPage);
   }, [fetchUnanchored, unanchoredPage]);
+
+  useEffect(() => {
+    fetchDisputes();
+  }, [fetchDisputes]);
 
   // ── Trigger retry pass ────────────────────────────────────────
   async function handleTrigger() {
@@ -115,6 +146,36 @@ export default function SyncPage() {
       setTriggerResult({ ok: false, msg: err.response?.data?.message || 'Trigger failed.' });
     } finally {
       setTriggering(false);
+    }
+  }
+
+  // ── Flag dispute on-chain ─────────────────────────────────────
+  async function handleFlagDispute(reportId) {
+    setDisputeAction(reportId);
+    setDisputeResult(null);
+    try {
+      const res = await flagDisputeReport(reportId);
+      setDisputeResult({ ok: true, msg: res.message, txHash: res.blockchainTxHash });
+      await fetchDisputes();
+    } catch (err) {
+      setDisputeResult({ ok: false, msg: err.response?.data?.message || 'Flag action failed.' });
+    } finally {
+      setDisputeAction('');
+    }
+  }
+
+  // ── Reject dispute report ─────────────────────────────────────
+  async function handleRejectDispute(reportId) {
+    setDisputeAction(reportId);
+    setDisputeResult(null);
+    try {
+      const res = await rejectDisputeReport(reportId);
+      setDisputeResult({ ok: true, msg: res.message });
+      await fetchDisputes();
+    } catch (err) {
+      setDisputeResult({ ok: false, msg: err.response?.data?.message || 'Reject action failed.' });
+    } finally {
+      setDisputeAction('');
     }
   }
 
@@ -226,7 +287,7 @@ export default function SyncPage() {
                   {triggerResult.data?.result
                     ? `Transfers fixed: ${triggerResult.data.result.transfers?.confirmed ?? 0}, Products anchored: ${triggerResult.data.result.products?.registered ?? 0}.`
                     : ''}
-                  {' '}Remaining retryable: {triggerResult.data?.remainingAfter ?? '—'}
+                  {' '}Remaining retryable: {triggerResult.data?.remainingAfter?.failedRetryable ?? '—'}
                 </>
               ) : `❌ ${triggerResult.msg}`}
             </div>
@@ -352,6 +413,87 @@ export default function SyncPage() {
                 prefix="unanchored"
               />
             </>
+          )}
+        </section>
+      )}
+      {/* ── Dispute Reports Panel (admin only) ── */}
+      {isAdmin && (
+        <section className="card sync-table-card" id="sync-dispute-reports">
+          <div className="sync-table-header">
+            <h2 className="sync-section-title">🚨 Stolen / Dispute Reports</h2>
+            <span className="audit-count-badge">{disputeTotal}</span>
+          </div>
+          <p className="sync-section-hint" style={{ marginBottom: 16 }}>
+            These are reports filed by receivers (distributors / retailers) for products suspected to be
+            <strong> stolen</strong> or <strong>counterfeit</strong>. Review each report and either
+            flag the product as <strong>DISPUTED on-chain</strong> (blocks all further transfers)
+            or dismiss the report if unfounded.
+          </p>
+
+          {disputeResult && (
+            <div className={`alert ${disputeResult.ok ? 'alert-success' : 'alert-error'}`}
+              style={{ marginBottom: 16 }} id="dispute-action-result">
+              {disputeResult.ok ? `✅ ${disputeResult.msg}` : `❌ ${disputeResult.msg}`}
+              {disputeResult.txHash && (
+                <span style={{ display:'block', fontFamily:'monospace', fontSize:'0.78rem', marginTop:4, opacity:0.8 }}>
+                  On-chain TX: {disputeResult.txHash.slice(0, 18)}…{disputeResult.txHash.slice(-8)}
+                </span>
+              )}
+            </div>
+          )}
+
+          {disputeLoading ? (
+            <div className="sync-table-loading"><span className="spinner" /></div>
+          ) : disputes.length === 0 ? (
+            <div className="sync-empty">
+              <span>✅</span>
+              <p>No pending dispute reports — all clear!</p>
+            </div>
+          ) : (
+            <div className="dispute-reports-list">
+              {disputes.map(report => (
+                <div key={report._id} className="dispute-report-card" id={`dispute-${report._id}`}>
+                  <div className="dispute-report-top">
+                    <div className="dispute-report-meta">
+                      <span className="dispute-product-name">
+                        {report.product?.name || '—'}
+                        <code className="prod-sku" style={{ marginLeft: 8 }}>{report.product?.sku}</code>
+                      </span>
+                      <span className="dispute-reporter">
+                        🧑 Reported by: <strong>{report.reportedBy?.email || '—'}</strong>
+                        <span style={{ opacity: 0.6, marginLeft: 4 }}>({report.reportedBy?.role})</span>
+                      </span>
+                      <span className="dispute-date">🕒 {formatDate(report.createdAt)}</span>
+                    </div>
+                    <div className="dispute-report-actions">
+                      <button
+                        className="btn btn-danger btn-sm"
+                        id={`btn-flag-${report._id}`}
+                        onClick={() => handleFlagDispute(report._id)}
+                        disabled={disputeAction === report._id}
+                      >
+                        {disputeAction === report._id
+                          ? <><span className="spinner" style={{ width:14, height:14, borderWidth:2 }} /> Processing…</>
+                          : '🔴 Flag as Stolen / Counterfeit — DISPUTE On-Chain'
+                        }
+                      </button>
+                      <button
+                        className="btn btn-ghost btn-sm"
+                        id={`btn-reject-${report._id}`}
+                        onClick={() => handleRejectDispute(report._id)}
+                        disabled={disputeAction === report._id}
+                      >
+                        ✕ Dismiss
+                      </button>
+                    </div>
+                  </div>
+                  <div className="dispute-reason-box">
+                    <span className="dispute-reason-label">Reporter's reason:</span>
+                    <p className="dispute-reason-text">{report.reason}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
           )}
         </section>
       )}

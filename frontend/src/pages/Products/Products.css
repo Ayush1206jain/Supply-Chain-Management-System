@@ -164,13 +164,11 @@
 
 .product-meta {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
+  flex-direction: column;
   margin-top: 14px;
   padding-top: 14px;
   border-top: 1px solid var(--clr-border);
-  gap: 8px;
-  flex-wrap: wrap;
+  gap: 6px;
 }
 
 .product-price {
@@ -182,10 +180,8 @@
 .product-owner {
   font-size: var(--font-size-xs);
   color: var(--clr-text-muted);
-  max-width: 150px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  white-space: normal;
+  word-break: break-word;
 }
 
 .product-chain-badge {

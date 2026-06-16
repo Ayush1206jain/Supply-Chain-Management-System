@@ -79,8 +79,28 @@
 
 .audit-search-row .form-input {
   flex: 1;
-  font-family: 'Fira Code', 'Courier New', monospace;
   font-size: 0.9rem;
+}
+
+.audit-search-row .form-select {
+  font-family: inherit;
+}
+
+.audit-toggle-mode {
+  background: none;
+  border: none;
+  color: var(--clr-primary-400);
+  font-size: var(--font-size-xs);
+  cursor: pointer;
+  padding: 0;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  opacity: 0.8;
+  transition: opacity 0.2s;
+}
+
+.audit-toggle-mode:hover {
+  opacity: 1;
 }
 
 /* ── Two-column grid ── */
@@ -121,6 +141,22 @@
 .verdict-banner-fail {
   background: linear-gradient(135deg, rgba(255,107,107,.12), rgba(252,196,25,.08));
   border: 1px solid rgba(255,107,107,.25);
+}
+
+/* DISPUTED override banner — always overrides the green banner */
+.verdict-banner-disputed {
+  background: linear-gradient(135deg, rgba(239,68,68,.15), rgba(239,68,68,.06));
+  border: 1px solid rgba(239,68,68,.4);
+  animation: scaleIn 0.4s var(--ease-spring) both, disputedBannerPulse 2.5s ease-in-out infinite;
+}
+
+@keyframes disputedBannerPulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+  50%       { box-shadow: 0 0 20px 4px rgba(239, 68, 68, 0.18); }
+}
+
+.verdict-banner-disputed .verdict-banner-title {
+  color: #f87171;
 }
 
 .verdict-banner-icon {
@@ -416,6 +452,28 @@
   font-size: var(--font-size-xs);
   color: var(--clr-text-muted);
   text-transform: capitalize;
+}
+
+.sync-status-inline {
+  border-radius: var(--radius-full);
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+  padding: 2px 8px;
+}
+
+.sync-status-inline.sync-confirmed {
+  background: rgba(81,207,102,.12);
+  color: var(--clr-success);
+}
+
+.sync-status-inline.sync-pending {
+  background: rgba(252,196,25,.12);
+  color: var(--clr-warning);
+}
+
+.sync-status-inline.sync-failed {
+  background: rgba(255,107,107,.1);
+  color: var(--clr-danger);
 }
 
 @keyframes pulse {

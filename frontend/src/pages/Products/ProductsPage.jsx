@@ -336,7 +336,7 @@ function ProductCard({ product, index }) {
       <div className="product-meta">
         <span className="product-price">₹{Number(product.price).toFixed(2)}</span>
         <span className="product-owner" title={product.owner?.email}>
-          👤 {product.owner?.email ?? "Unknown"}
+          👤 Current Owner: {product.owner?.name ?? "Unknown"} ({product.owner?.role ?? "N/A"})
         </span>
       </div>
     </div>

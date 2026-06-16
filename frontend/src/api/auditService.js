@@ -6,7 +6,7 @@ import api from './axios';
  */
 export async function getAuditReport(productId) {
   const res = await api.get(`/api/audit/${productId}`);
-  return res.data;
+  return res.data.auditReport ?? res.data;
 }
 
 /**
