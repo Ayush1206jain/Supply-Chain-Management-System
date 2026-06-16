@@ -126,7 +126,7 @@ describe("SupplyChainRegistry", function () {
       expect(newOwner).to.equal(alice.address);
     });
 
-    it("previous owner can no longer transfer after handoff", async function () {
+    it("unrelated account cannot transfer after handoff", async function () {
       const { registry, owner, alice, bob } = await deployFixture();
       const { productId, contentHash } = makeIds("SKU-TR-002");
 
@@ -134,8 +134,20 @@ describe("SupplyChainRegistry", function () {
       await registry.transferOwnership(productId, alice.address);
 
       await expect(
-        registry.transferOwnership(productId, bob.address)
+        registry.connect(bob).transferOwnership(productId, owner.address)
       ).to.be.revertedWith("not owner");
+    });
+
+    it("registrar can continue transferring as backend oracle", async function () {
+      const { registry, alice, bob } = await deployFixture();
+      const { productId, contentHash } = makeIds("SKU-TR-ORACLE");
+
+      await registry.registerProduct(productId, contentHash);
+      await registry.transferOwnership(productId, alice.address);
+      await registry.transferOwnership(productId, bob.address);
+
+      const [, finalOwner] = await registry.getProduct(productId);
+      expect(finalOwner).to.equal(bob.address);
     });
 
     it("new owner can transfer onwards", async function () {
@@ -281,6 +293,19 @@ describe("SupplyChainRegistry", function () {
 
       await expect(registry.connect(alice).confirmTransfer(productId))
         .to.emit(registry, "TransferConfirmed");
+
+      const [, newOwner, , status] = await registry.getProduct(productId);
+      expect(newOwner).to.equal(alice.address);
+      expect(Number(status)).to.equal(STATUS.DELIVERED);
+    });
+
+    it("registrar can confirm transfer as backend oracle", async function () {
+      const { registry, owner, alice } = await deployFixture();
+      const { productId, contentHash } = makeIds("MSIG-ORACLE");
+
+      await registry.registerProduct(productId, contentHash);
+      await registry.initiateTransfer(productId, alice.address);
+      await registry.confirmTransfer(productId);
 
       const [, newOwner, , status] = await registry.getProduct(productId);
       expect(newOwner).to.equal(alice.address);

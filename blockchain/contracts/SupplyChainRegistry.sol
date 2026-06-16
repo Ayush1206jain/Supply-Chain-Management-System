@@ -24,6 +24,7 @@ contract SupplyChainRegistry {
     struct Product {
         bytes32 contentHash;
         address owner;
+        address registrar;
         ProductStatus status;      // NEW
         uint256 registeredAt;
         uint256 lastUpdatedAt;     // NEW
@@ -94,6 +95,7 @@ contract SupplyChainRegistry {
         _products[productId] = Product({
             contentHash: contentHash,
             owner: msg.sender,
+            registrar: msg.sender,
             status: ProductStatus.CREATED,
             registeredAt: block.timestamp,
             lastUpdatedAt: block.timestamp,
@@ -112,7 +114,7 @@ contract SupplyChainRegistry {
 
         Product storage p = _products[productId];
         require(p.exists, "unknown product");
-        require(p.owner == msg.sender, "not owner");
+        require(p.owner == msg.sender || p.registrar == msg.sender, "not owner");
         require(newOwner != p.owner, "same owner");
 
         address from = p.owner;
@@ -160,7 +162,7 @@ contract SupplyChainRegistry {
         require(newOwner != address(0), "invalid new owner");
         Product storage p = _products[productId];
         require(p.exists, "unknown product");
-        require(p.owner == msg.sender, "not owner");
+        require(p.owner == msg.sender || p.registrar == msg.sender, "not owner");
         require(newOwner != p.owner, "same owner");
         require(!pendingTransfers[productId].exists, "transfer already pending");
 
@@ -184,17 +186,20 @@ contract SupplyChainRegistry {
     function confirmTransfer(bytes32 productId) external {
         PendingTransfer memory pt = pendingTransfers[productId];
         require(pt.exists, "no pending transfer");
-        require(pt.to == msg.sender, "not the intended receiver");
 
         Product storage p = _products[productId];
+        require(
+            pt.to == msg.sender || p.registrar == msg.sender,
+            "not the intended receiver"
+        );
         address from = p.owner;
-        p.owner = msg.sender;
+        p.owner = pt.to;
         p.status = ProductStatus.DELIVERED;
         p.lastUpdatedAt = block.timestamp;
 
         delete pendingTransfers[productId];
 
-        emit TransferConfirmed(productId, from, msg.sender, block.timestamp);
+        emit TransferConfirmed(productId, from, pt.to, block.timestamp);
     }
 
     // ─── NEW: Dispute flagging ────────────────────────────────────────────────

@@ -3,6 +3,17 @@
     "anonymous": false,
     "inputs": [
       { "indexed": true,  "internalType": "bytes32", "name": "productId",  "type": "bytes32" },
+      { "indexed": true,  "internalType": "bytes32", "name": "contentHash", "type": "bytes32" },
+      { "indexed": true,  "internalType": "address", "name": "owner",       "type": "address" },
+      { "indexed": false, "internalType": "uint256", "name": "timestamp",   "type": "uint256" }
+    ],
+    "name": "ProductRegistered",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      { "indexed": true,  "internalType": "bytes32", "name": "productId",  "type": "bytes32" },
       { "indexed": true,  "internalType": "address", "name": "from",        "type": "address" },
       { "indexed": true,  "internalType": "address", "name": "to",          "type": "address" },
       { "indexed": false, "internalType": "uint256", "name": "timestamp",   "type": "uint256" }
@@ -13,26 +24,34 @@
   {
     "anonymous": false,
     "inputs": [
-      { "indexed": true,  "internalType": "bytes32", "name": "productId",   "type": "bytes32" },
-      { "indexed": true,  "internalType": "bytes32", "name": "contentHash", "type": "bytes32" },
-      { "indexed": true,  "internalType": "address", "name": "owner",       "type": "address" },
+      { "indexed": true,  "internalType": "bytes32", "name": "productId",  "type": "bytes32" },
+      { "indexed": true,  "internalType": "address", "name": "from",        "type": "address" },
+      { "indexed": true,  "internalType": "address", "name": "to",          "type": "address" },
       { "indexed": false, "internalType": "uint256", "name": "timestamp",   "type": "uint256" }
     ],
-    "name": "ProductRegistered",
+    "name": "TransferInitiated",
     "type": "event"
   },
   {
+    "anonymous": false,
     "inputs": [
-      { "internalType": "bytes32", "name": "productId", "type": "bytes32" }
+      { "indexed": true,  "internalType": "bytes32", "name": "productId",  "type": "bytes32" },
+      { "indexed": true,  "internalType": "address", "name": "from",        "type": "address" },
+      { "indexed": true,  "internalType": "address", "name": "to",          "type": "address" },
+      { "indexed": false, "internalType": "uint256", "name": "timestamp",   "type": "uint256" }
     ],
-    "name": "getProduct",
-    "outputs": [
-      { "internalType": "bytes32", "name": "contentHash",   "type": "bytes32" },
-      { "internalType": "address", "name": "owner",         "type": "address" },
-      { "internalType": "uint256", "name": "registeredAt",  "type": "uint256" }
+    "name": "TransferConfirmed",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      { "indexed": true,  "internalType": "bytes32", "name": "productId",  "type": "bytes32" },
+      { "indexed": true,  "internalType": "address", "name": "flaggedBy",   "type": "address" },
+      { "indexed": false, "internalType": "uint256", "name": "timestamp",   "type": "uint256" }
     ],
-    "stateMutability": "view",
-    "type": "function"
+    "name": "DisputeRaised",
+    "type": "event"
   },
   {
     "inputs": [
@@ -52,6 +71,77 @@
     "name": "transferOwnership",
     "outputs": [],
     "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      { "internalType": "bytes32", "name": "productId", "type": "bytes32" }
+    ],
+    "name": "getProduct",
+    "outputs": [
+      { "internalType": "bytes32", "name": "contentHash",   "type": "bytes32" },
+      { "internalType": "address", "name": "owner",         "type": "address" },
+      { "internalType": "uint256", "name": "registeredAt",  "type": "uint256" },
+      { "internalType": "uint8",   "name": "status",        "type": "uint8"   },
+      { "internalType": "uint256", "name": "lastUpdatedAt", "type": "uint256" }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      { "internalType": "bytes32", "name": "productId", "type": "bytes32" },
+      { "internalType": "address", "name": "newOwner",  "type": "address" }
+    ],
+    "name": "initiateTransfer",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      { "internalType": "bytes32", "name": "productId", "type": "bytes32" }
+    ],
+    "name": "confirmTransfer",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      { "internalType": "bytes32", "name": "productId", "type": "bytes32" }
+    ],
+    "name": "flagDispute",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      { "internalType": "bytes32", "name": "productId", "type": "bytes32" }
+    ],
+    "name": "getPendingTransfer",
+    "outputs": [
+      { "internalType": "address", "name": "from",        "type": "address" },
+      { "internalType": "address", "name": "to",          "type": "address" },
+      { "internalType": "uint256", "name": "initiatedAt", "type": "uint256" },
+      { "internalType": "bool",    "name": "exists",      "type": "bool"    }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      { "internalType": "bytes32", "name": "",  "type": "bytes32" }
+    ],
+    "name": "pendingTransfers",
+    "outputs": [
+      { "internalType": "address", "name": "from",        "type": "address" },
+      { "internalType": "address", "name": "to",          "type": "address" },
+      { "internalType": "uint256", "name": "initiatedAt", "type": "uint256" },
+      { "internalType": "bool",    "name": "exists",      "type": "bool"    }
+    ],
+    "stateMutability": "view",
     "type": "function"
   }
 ]
