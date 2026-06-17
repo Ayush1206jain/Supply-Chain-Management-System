@@ -17,6 +17,11 @@ const { MongoMemoryReplSet } = require("mongodb-memory-server");
 const request = require("supertest");
 const { signAccessToken } = require("../src/utils/jwt");
 
+// Redirect MongoDB memory server temp directory to D drive to avoid disk space issues
+const path = require("path");
+process.env.MONGOMS_TMPDIR = path.join(__dirname, "../.mongo_tmp");
+process.env.MONGOMS_STORAGE_ENGINE = "ephemeralForTest";
+
 let mongod;
 
 /**
@@ -24,7 +29,12 @@ let mongod;
  * Call this from a `beforeAll` in your test file.
  */
 async function connect() {
-  mongod = await MongoMemoryReplSet.create({ replSet: { count: 1 } });
+  mongod = await MongoMemoryReplSet.create({
+    replSet: { count: 1 },
+    instanceOpts: [
+      { storageEngine: "ephemeralForTest" }
+    ]
+  });
   const uri = mongod.getUri();
   await mongoose.connect(uri);
 }

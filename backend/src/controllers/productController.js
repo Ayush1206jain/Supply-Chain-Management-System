@@ -42,8 +42,11 @@ async function createProduct(req, res) {
   const txHash = await registerProductOnChain(product);
   if (txHash) {
     product.blockchainTxHash = txHash;
-    await product.save();
+    product.syncStatus = "confirmed";
+  } else {
+    product.syncStatus = "failed";
   }
+  await product.save();
   // ─────────────────────────────────────────────────────────────────────────
 
   return res.status(201).json({
@@ -159,10 +162,130 @@ async function getProductStatus(req, res) {
   });
 }
 
+// GET /api/products/search
+// Query params:
+//   q          - text search (name, description, sku)
+//   status     - chain status: CREATED | IN_TRANSIT | DELIVERED | DISPUTED
+//   owner      - userId (filter by owner)
+//   syncStatus - DB sync status: pending | confirmed | failed
+//   dateFrom   - ISO date string (createdAt >= dateFrom)
+//   dateTo     - ISO date string (createdAt <= dateTo)
+//   page       - page number, default 1
+//   limit      - results per page, default 20, max 100
+//   sortBy     - field to sort: createdAt | name | price, default createdAt
+//   sortOrder  - asc | desc, default desc
+async function searchProducts(req, res) {
+  try {
+    const {
+      q,
+      status,
+      owner,
+      syncStatus,
+      dateFrom,
+      dateTo,
+      page = 1,
+      limit = 20,
+      sortBy = 'createdAt',
+      sortOrder = 'desc',
+    } = req.query;
+
+    // ── Build MongoDB filter ──────────────────────────────────────────
+    const filter = {};
+
+    // Text search across name, description, sku
+    if (q && q.trim()) {
+      filter.$text = { $search: q.trim() };
+    }
+
+    // Filter by sync status
+    if (syncStatus) {
+      const allowed = ['pending', 'confirmed', 'failed', 'exhausted'];
+      if (!allowed.includes(syncStatus)) {
+        return res.status(400).json({ error: 'Invalid syncStatus value' });
+      }
+      filter.syncStatus = syncStatus;
+    }
+
+    // Filter by owner
+    // If requester is not admin, they can only see their own or all (no filter)
+    if (owner) {
+      filter.owner = owner;
+    }
+
+    // Date range filter
+    if (dateFrom || dateTo) {
+      filter.createdAt = {};
+      if (dateFrom) filter.createdAt.$gte = new Date(dateFrom);
+      if (dateTo)   filter.createdAt.$lte = new Date(dateTo);
+    }
+
+    // ── Sanitize pagination params ────────────────────────────────────
+    const pageNum  = Math.max(1, parseInt(page));
+    const limitNum = Math.min(100, Math.max(1, parseInt(limit)));
+    const skip     = (pageNum - 1) * limitNum;
+
+    // ── Sanitize sort params ──────────────────────────────────────────
+    const allowedSortFields = ['createdAt', 'name', 'price', 'sku', 'updatedAt'];
+    const sortField = allowedSortFields.includes(sortBy) ? sortBy : 'createdAt';
+    const sortDir   = sortOrder === 'asc' ? 1 : -1;
+    const sort      = { [sortField]: sortDir };
+
+    // If text search, also sort by relevance score
+    // MongoDB text search adds a $meta score
+    const projection = q ? { score: { $meta: 'textScore' } } : {};
+    if (q) sort.score = { $meta: 'textScore' };
+
+    // ── Execute query (count + paginated results in parallel) ─────────
+    const [total, products] = await Promise.all([
+      Product.countDocuments(filter),
+      Product.find(filter, projection)
+        .populate('owner', 'name email role')       // join owner details (include name)
+        .populate('createdBy', 'name email role')   // join creator details (include name)
+        .sort(sort)
+        .skip(skip)
+        .limit(limitNum)
+        .lean(),                               // plain JS objects, faster
+    ]);
+
+    // ── Build pagination metadata ─────────────────────────────────────
+    const totalPages  = Math.ceil(total / limitNum);
+    const hasNextPage = pageNum < totalPages;
+    const hasPrevPage = pageNum > 1;
+
+    res.json({
+      success: true,
+      products,
+      pagination: {
+        total,          // total matching documents
+        page: pageNum,
+        limit: limitNum,
+        totalPages,
+        hasNextPage,
+        hasPrevPage,
+        nextPage:  hasNextPage ? pageNum + 1 : null,
+        prevPage:  hasPrevPage ? pageNum - 1 : null,
+      },
+      filters: {        // echo back applied filters (useful for frontend)
+        q: q || null,
+        status: status || null,
+        owner: owner || null,
+        syncStatus: syncStatus || null,
+        dateFrom: dateFrom || null,
+        dateTo: dateTo || null,
+      },
+    });
+  } catch (err) {
+    console.error('searchProducts error:', err);
+    res.status(500).json({ error: 'Search failed', detail: err.message });
+  }
+}
+
 module.exports = {
   createProduct,
   listProducts,
   getProductById,
   getProductStatus,
+  searchProducts,
 };
+
 

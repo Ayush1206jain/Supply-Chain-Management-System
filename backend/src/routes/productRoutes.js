@@ -15,6 +15,8 @@ router.post(
   productController.createProduct
 );
 
+// GET /api/products/search (Day 1 plan)
+router.get("/search", authRequired, productController.searchProducts);
 
 // NOTE: /... specific routes must come BEFORE /:id to avoid matching conflicts.
 // GET /api/products/:id/status  — live DB + blockchain status view

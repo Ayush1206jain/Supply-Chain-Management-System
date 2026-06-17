@@ -254,3 +254,155 @@ describe("GET /api/products/:id/status", () => {
     expect(res.body.blockchainTxHash).toBeNull();
   });
 });
+
+describe("GET /api/products/search", () => {
+  const mongoose = require("mongoose");
+  let mfgToken, manufacturerId, distributorId;
+
+  beforeEach(async () => {
+    const Product = mongoose.model("Product");
+    await Product.syncIndexes();
+    await Product.deleteMany({});
+
+    // Create manufacturer user
+    const mfgEmail = `mfg_${Date.now()}@test.com`;
+    await request(app)
+      .post("/api/auth/register")
+      .send({
+        name: "Mfg User",
+        email: mfgEmail,
+        password: "Pass123!",
+        role: "manufacturer",
+      });
+    const mfgLogin = await request(app)
+      .post("/api/auth/login")
+      .send({ email: mfgEmail, password: "Pass123!" });
+    mfgToken = mfgLogin.body.token;
+    manufacturerId = mfgLogin.body.user.id;
+
+    // Create distributor user
+    const distEmail = `dist_${Date.now()}@test.com`;
+    await request(app)
+      .post("/api/auth/register")
+      .send({
+        name: "Dist User",
+        email: distEmail,
+        password: "Pass123!",
+        role: "distributor",
+      });
+    const distLogin = await request(app)
+      .post("/api/auth/login")
+      .send({ email: distEmail, password: "Pass123!" });
+    distributorId = distLogin.body.user.id;
+
+    // Create 3 products with different owners and statuses
+    await Product.create([
+      {
+        sku: "S001",
+        name: "Widget Alpha",
+        price: 100,
+        owner: manufacturerId,
+        createdBy: manufacturerId,
+        contentHash: "abcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabca",
+        syncStatus: "confirmed",
+      },
+      {
+        sku: "S002",
+        name: "Gadget Beta",
+        price: 200,
+        owner: distributorId,
+        createdBy: manufacturerId,
+        contentHash: "defdefdefdefdefdefdefdefdefdefdefdefdefdefdefdefdefdefdefdefdefde",
+        syncStatus: "pending",
+      },
+      {
+        sku: "S003",
+        name: "Widget Gamma",
+        price: 300,
+        owner: manufacturerId,
+        createdBy: manufacturerId,
+        contentHash: "ghighighighighighighighighighighighighighighighighighighighighig",
+        syncStatus: "confirmed",
+      },
+    ]);
+  });
+
+  it("returns all products with default pagination", async () => {
+    const res = await request(app)
+      .get("/api/products/search")
+      .set("Authorization", `Bearer ${mfgToken}`);
+    expect(res.status).toBe(200);
+    expect(res.body.products).toHaveLength(3);
+    expect(res.body.pagination.total).toBe(3);
+    expect(res.body.pagination.page).toBe(1);
+  });
+
+  it("filters by syncStatus=confirmed", async () => {
+    const res = await request(app)
+      .get("/api/products/search?syncStatus=confirmed")
+      .set("Authorization", `Bearer ${mfgToken}`);
+    expect(res.status).toBe(200);
+    expect(res.body.products).toHaveLength(2);
+    expect(res.body.products.every((p) => p.syncStatus === "confirmed")).toBe(true);
+  });
+
+  it("filters by owner", async () => {
+    const res = await request(app)
+      .get(`/api/products/search?owner=${distributorId}`)
+      .set("Authorization", `Bearer ${mfgToken}`);
+    expect(res.status).toBe(200);
+    expect(res.body.products).toHaveLength(1);
+    expect(res.body.products[0].sku).toBe("S002");
+  });
+
+  it("paginates correctly: page=1&limit=2", async () => {
+    const res = await request(app)
+      .get("/api/products/search?page=1&limit=2")
+      .set("Authorization", `Bearer ${mfgToken}`);
+    expect(res.status).toBe(200);
+    expect(res.body.products).toHaveLength(2);
+    expect(res.body.pagination.totalPages).toBe(2);
+    expect(res.body.pagination.hasNextPage).toBe(true);
+    expect(res.body.pagination.hasPrevPage).toBe(false);
+  });
+
+  it("paginates correctly: page=2&limit=2", async () => {
+    const res = await request(app)
+      .get("/api/products/search?page=2&limit=2")
+      .set("Authorization", `Bearer ${mfgToken}`);
+    expect(res.status).toBe(200);
+    expect(res.body.products).toHaveLength(1);
+    expect(res.body.pagination.hasNextPage).toBe(false);
+    expect(res.body.pagination.hasPrevPage).toBe(true);
+  });
+
+  it("rejects invalid syncStatus value", async () => {
+    const res = await request(app)
+      .get("/api/products/search?syncStatus=invalid")
+      .set("Authorization", `Bearer ${mfgToken}`);
+    expect(res.status).toBe(400);
+  });
+
+  it("caps limit at 100", async () => {
+    const res = await request(app)
+      .get("/api/products/search?limit=999")
+      .set("Authorization", `Bearer ${mfgToken}`);
+    expect(res.status).toBe(200);
+    expect(res.body.pagination.limit).toBe(100);
+  });
+
+  it("rejects unauthenticated request", async () => {
+    const res = await request(app).get("/api/products/search");
+    expect(res.status).toBe(401);
+  });
+
+  it("does text search on q=Widget", async () => {
+    const res = await request(app)
+      .get("/api/products/search?q=Widget")
+      .set("Authorization", `Bearer ${mfgToken}`);
+    expect(res.status).toBe(200);
+    expect(res.body.products).toHaveLength(2);
+    expect(res.body.products.map((p) => p.sku).sort()).toEqual(["S001", "S003"]);
+  });
+});
+

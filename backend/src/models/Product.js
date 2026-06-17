@@ -49,10 +49,22 @@ const productSchema = new mongoose.Schema(
       type: Number,
       default: 0,
     },
+    syncStatus: {
+      type: String,
+      enum: ["pending", "confirmed", "failed", "exhausted"],
+      default: "pending",
+    },
   },
   { timestamps: true }
 );
 
+// Indexes for status and owner filtering (Day 1 plan)
+productSchema.index({ syncStatus: 1 });
 productSchema.index({ owner: 1 });
+productSchema.index({ owner: 1, createdAt: -1 });
+productSchema.index({ owner: 1, syncStatus: 1, createdAt: -1 });
+
+// Text index for full-text search across name, description, and SKU
+productSchema.index({ name: "text", description: "text", sku: "text" });
 
 module.exports = mongoose.model("Product", productSchema);

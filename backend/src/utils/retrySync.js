@@ -136,11 +136,14 @@ async function retryUnanchoredProducts() {
 
     if (txHash) {
       product.blockchainTxHash = txHash;
+      product.syncStatus = "confirmed";
       passed++;
       console.log(
         `[retrySync] Product ${product._id} anchored. txHash: ${txHash}`
       );
     } else {
+      product.syncStatus =
+        product.retryCount >= MAX_RETRIES ? "exhausted" : "failed";
       failed++;
       console.warn(
         `[retrySync] Product ${product._id} still failing ` +
