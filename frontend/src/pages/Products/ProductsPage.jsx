@@ -1,23 +1,34 @@
 import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "../../context/AuthContext";
-import { listProducts, createProduct, getProductStatus } from "../../api/productService";
+import { listProducts, createProduct, getProductStatus, searchProducts } from "../../api/productService";
 import SupplyChainBackground from "../../components/SupplyChainBackground";
+import { useScrollVisibility } from "../../hooks/useScrollVisibility";
 import "./Products.css";
 
 /**
- * ProductsPage — Day 14
+ * ProductsPage — Day 14 & 17
  * - Any authenticated user can browse all products.
  * - Manufacturer and Admin can create a new product via the inline form.
  * - Shows blockchain anchor status badge per card.
+ * - Search, filter, and paginated product browsing.
  */
 export default function ProductsPage() {
   const { user } = useAuth();
   const canCreate = user?.role === "manufacturer" || user?.role === "admin";
 
   const [products, setProducts]       = useState([]);
+  const isFooterVisible = useScrollVisibility();
   const [loadingList, setLoadingList] = useState(true);
   const [listError, setListError]     = useState("");
   const [showForm, setShowForm]       = useState(false);
+
+  // ── Search & Pagination state ────────────────────────────────────────
+  const [searchQuery, setSearchQuery]     = useState("");
+  const [filterStatus, setFilterStatus]   = useState("");
+  const [filterSync, setFilterSync]       = useState("");
+  const [currentPage, setCurrentPage]     = useState(1);
+  const [pagination, setPagination]       = useState(null);
+  const [isSearching, setIsSearching]     = useState(false);
 
   // ── Form state ──────────────────────────────────────────────────────
   const [form, setForm] = useState({
@@ -30,21 +41,32 @@ export default function ProductsPage() {
   // ── Fetch products ───────────────────────────────────────────────────
   const fetchProducts = useCallback(async () => {
     try {
-      setLoadingList(true);
+      setIsSearching(true);
       setListError("");
-      const data = await listProducts();
-      setProducts(data.products ?? []);
+      const result = await searchProducts({
+        q: searchQuery,
+        status: filterStatus,
+        syncStatus: filterSync,
+        page: currentPage,
+        limit: 12,
+      });
+      setProducts(result.products ?? []);
+      setPagination(result.pagination ?? null);
     } catch (err) {
       setListError(
-        err.response?.data?.message || "Failed to load products. Is the backend running?"
+        err.response?.data?.message || err.response?.data?.error || "Failed to load products."
       );
     } finally {
+      setIsSearching(false);
       setLoadingList(false);
     }
-  }, []);
+  }, [searchQuery, filterStatus, filterSync, currentPage]);
 
   useEffect(() => {
-    fetchProducts();
+    const timer = setTimeout(() => {
+      fetchProducts();
+    }, 400);
+    return () => clearTimeout(timer);
   }, [fetchProducts]);
 
   // ── Form handlers ────────────────────────────────────────────────────
@@ -77,6 +99,13 @@ export default function ProductsPage() {
       });
       setFormSuccess("✅ Product registered successfully!");
       setForm({ sku: "", name: "", description: "", price: "" });
+      
+      // Clear filters so the user sees their new product immediately
+      setSearchQuery("");
+      setFilterStatus("");
+      setFilterSync("");
+      setCurrentPage(1);
+      
       await fetchProducts(); // refresh the list
       // Auto-hide success message after 3s
       setTimeout(() => setFormSuccess(""), 3000);
@@ -204,17 +233,94 @@ export default function ProductsPage() {
         </div>
       )}
 
+      {/* Search and Filters */}
+      <div className="search-bar-container" id="products-search-bar">
+        <div className="search-input-wrapper">
+          <span className="search-icon">🔍</span>
+          <input
+            type="text"
+            className="search-input"
+            placeholder="Search by name, SKU, or description..."
+            value={searchQuery}
+            onChange={(e) => {
+              setCurrentPage(1);
+              setSearchQuery(e.target.value);
+            }}
+          />
+          {searchQuery && (
+            <button
+              className="search-clear"
+              onClick={() => {
+                setSearchQuery("");
+                setCurrentPage(1);
+              }}
+            >
+              ✕
+            </button>
+          )}
+        </div>
+
+        <div className="filter-row">
+          <select
+            className="filter-select"
+            value={filterStatus}
+            onChange={(e) => {
+              setCurrentPage(1);
+              setFilterStatus(e.target.value);
+            }}
+          >
+            <option value="">All Chain Statuses</option>
+            <option value="CREATED">Created</option>
+            <option value="IN_TRANSIT">In Transit</option>
+            <option value="DELIVERED">Delivered</option>
+            <option value="DISPUTED">Disputed</option>
+          </select>
+
+          <select
+            className="filter-select"
+            value={filterSync}
+            onChange={(e) => {
+              setCurrentPage(1);
+              setFilterSync(e.target.value);
+            }}
+          >
+            <option value="">All Sync Statuses</option>
+            <option value="confirmed">Confirmed</option>
+            <option value="pending">Pending</option>
+            <option value="failed">Failed</option>
+          </select>
+
+          {(searchQuery || filterStatus || filterSync) && (
+            <button
+              className="clear-filters-btn"
+              onClick={() => {
+                setSearchQuery("");
+                setFilterStatus("");
+                setFilterSync("");
+                setCurrentPage(1);
+              }}
+            >
+              Clear All Filters
+            </button>
+          )}
+        </div>
+      </div>
+
       {/* Products list */}
       <div className="products-list-header">
         <h2 className="products-count">
-          {loadingList ? "Loading…" : `${products.length} product${products.length !== 1 ? "s" : ""} found`}
+          {loadingList || isSearching
+            ? "Searching…"
+            : pagination
+            ? `${pagination.total} product${pagination.total !== 1 ? "s" : ""} found`
+            : `${products.length} product${products.length !== 1 ? "s" : ""} found`}
         </h2>
         <button
           className="btn btn-ghost"
           id="btn-refresh-products"
           onClick={fetchProducts}
           style={{ padding: "6px 14px", fontSize: "var(--font-size-sm)" }}
-          disabled={loadingList}
+          disabled={loadingList || isSearching}
         >
           ↻ Refresh
         </button>
@@ -228,7 +334,7 @@ export default function ProductsPage() {
       )}
 
       {/* Loading skeleton */}
-      {loadingList && (
+      {(loadingList || isSearching) && (
         <div className="products-grid">
           {[1, 2, 3].map((i) => (
             <div className="skeleton-card" key={i}>
@@ -243,12 +349,14 @@ export default function ProductsPage() {
       )}
 
       {/* Empty state */}
-      {!loadingList && !listError && products.length === 0 && (
+      {!loadingList && !isSearching && !listError && products.length === 0 && (
         <div className="products-empty">
           <span className="products-empty-icon">📭</span>
-          <p className="products-empty-title">No products yet</p>
+          <p className="products-empty-title">No products found</p>
           <p>
-            {canCreate
+            {searchQuery || filterStatus || filterSync
+              ? "Try clearing or adjusting your search filters."
+              : canCreate
               ? `Click "Register Product" above to add the first product.`
               : "No products have been registered by a manufacturer yet."}
           </p>
@@ -256,7 +364,7 @@ export default function ProductsPage() {
       )}
 
       {/* Products grid */}
-      {!loadingList && products.length > 0 && (
+      {!loadingList && !isSearching && products.length > 0 && (
         <div className="products-grid stagger">
           {products.map((p, i) => (
             <ProductCard key={p._id} product={p} index={i} />
@@ -264,8 +372,52 @@ export default function ProductsPage() {
         </div>
       )}
 
+      {/* Pagination controls */}
+      {!loadingList && !isSearching && pagination && pagination.totalPages > 1 && (
+        <div className="pagination-controls">
+          <button
+            className="page-btn"
+            disabled={!pagination.hasPrevPage}
+            onClick={() => setCurrentPage((p) => p - 1)}
+          >
+            ← Previous
+          </button>
+
+          {/* Page number buttons */}
+          {Array.from({ length: pagination.totalPages }, (_, i) => i + 1)
+            .filter(
+              (p) =>
+                p === 1 ||
+                p === pagination.totalPages ||
+                Math.abs(p - currentPage) <= 2
+            )
+            .map((p, idx, arr) => (
+              <span key={p} style={{ display: "inline-flex", alignItems: "center" }}>
+                {idx > 0 && arr[idx - 1] !== p - 1 && (
+                  <span className="page-ellipsis">...</span>
+                )}
+                <button
+                  className={`page-btn ${p === currentPage ? "active" : ""}`}
+                  onClick={() => setCurrentPage(p)}
+                  style={{ marginLeft: idx > 0 && arr[idx - 1] === p - 1 ? "0.5rem" : undefined }}
+                >
+                  {p}
+                </button>
+              </span>
+            ))}
+
+          <button
+            className="page-btn"
+            disabled={!pagination.hasNextPage}
+            onClick={() => setCurrentPage((p) => p + 1)}
+          >
+            Next →
+          </button>
+        </div>
+      )}
+
       {/* Quote Tagline */}
-      <footer className="products-footer-quote">
+      <footer className={`products-footer-quote ${isFooterVisible ? "" : "hide"}`}>
         <p className="quote-text">
           Every product has a journey. Every transfer leaves a verified trace. 🔍
         </p>

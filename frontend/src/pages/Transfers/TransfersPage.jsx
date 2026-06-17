@@ -9,6 +9,7 @@ import {
 } from "../../api/transferService";
 import { reportDispute, getMyDisputes } from "../../api/disputeService";
 import { listUsers } from "../../api/userService";
+import { useScrollVisibility } from "../../hooks/useScrollVisibility";
 import "./Transfers.css";
 
 const NEXT_RECIPIENT_ROLE = {
@@ -34,6 +35,7 @@ export default function TransfersPage() {
   const [products, setProducts] = useState([]);
   const [recipients, setRecipients] = useState([]);
   const [pendingTransfers, setPendingTransfers] = useState([]);
+  const isFooterVisible = useScrollVisibility();
   const [loadingProducts, setLoadingProducts] = useState(true);
   const [loadingRecipients, setLoadingRecipients] = useState(false);
   const [loadingPending, setLoadingPending] = useState(false);
@@ -433,7 +435,7 @@ export default function TransfersPage() {
         <img src="/assets/icons/blockchain.png" alt="Blockchain" className="decor-icon-trans decor-blockchain" />
       </div>
 
-      <footer className="transfers-footer-quote">
+      <footer className={`transfers-footer-quote ${isFooterVisible ? "" : "hide"}`}>
         <div className="quote-text-container">
           <span className="quote-text">Transparent transfers. Verified ownership. Immutable records.</span>
           <svg className="quote-hollow-block" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">

@@ -36,3 +36,18 @@ export async function getProductStatus(id) {
   const res = await api.get(`/api/products/${id}/status`);
   return res.data;
 }
+
+/** Search, filter, and paginate products. */
+export async function searchProducts(params = {}) {
+  const queryString = new URLSearchParams(
+    Object.fromEntries(
+      Object.entries(params).filter(([_, v]) => v !== undefined && v !== null && v !== "")
+    )
+  ).toString();
+
+  const res = await api.get(
+    `/api/products/search${queryString ? "?" + queryString : ""}`
+  );
+  return res.data; // { products, pagination, filters }
+}
+

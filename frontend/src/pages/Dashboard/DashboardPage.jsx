@@ -1,4 +1,5 @@
 import { useAuth } from "../../context/AuthContext";
+import { useScrollVisibility } from "../../hooks/useScrollVisibility";
 import "./Dashboard.css";
 
 /**
@@ -52,6 +53,7 @@ const ROLE_CONFIG = {
 export default function DashboardPage() {
   const { user } = useAuth();
   const config = ROLE_CONFIG[user?.role] || ROLE_CONFIG.retailer;
+  const isFooterVisible = useScrollVisibility();
 
   return (
     <div className="dashboard animate-fade-in" id="dashboard-page">
@@ -164,7 +166,7 @@ export default function DashboardPage() {
       )}
 
       {/* Quote Tagline at bottom of screen */}
-      <footer className="dashboard-footer-quote">
+      <footer className={`dashboard-footer-quote ${isFooterVisible ? "" : "hide"}`}>
         <p className="dashboard-quote-text">
           "Moving products forward,preserving trust and transparency..."
         </p>
