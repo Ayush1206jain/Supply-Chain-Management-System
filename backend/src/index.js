@@ -1,8 +1,12 @@
 require("dotenv").config();
 
+const http = require("http");
 const app = require("./app");
 const { connectDB } = require("./config/db");
 const { startRetryJob } = require("./jobs/startRetryJob");
+const { initSocketServer } = require("./sockets/notificationSocket");
+const { startContractEventListener } = require("./utils/eventListener");
+const SupplyChainABI = require("../../blockchain/artifacts/contracts/SupplyChainRegistry.sol/SupplyChainRegistry.json");
 
 const port = Number(process.env.PORT || 3000);
 const mongoUri =
@@ -17,9 +21,24 @@ async function startServer() {
 
     const tryListen = () => {
       attempts += 1;
-      const server = app.listen(currentPort, () => {
+      const httpServer = http.createServer(app);
+      initSocketServer(httpServer);
+
+      const server = httpServer.listen(currentPort, () => {
         console.log(`Backend running on http://localhost:${currentPort}`);
+        console.log("Socket.io listening on the same port");
         startRetryJob();
+
+        // Start contract event listener (only if blockchain is configured)
+        if (process.env.CONTRACT_ADDRESS && process.env.BLOCKCHAIN_RPC_URL) {
+          startContractEventListener(
+            process.env.CONTRACT_ADDRESS,
+            SupplyChainABI.abi,
+            process.env.BLOCKCHAIN_RPC_URL
+          );
+        } else {
+          console.log("Blockchain not configured — event listener skipped");
+        }
       });
 
       server.on("error", (err) => {

@@ -94,4 +94,69 @@
   .navbar-email {
     display: none;
   }
+
+  body {
+    padding-bottom: 72px;
+  }
+}
+
+/* Bottom Navigation Bar */
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: var(--clr-navbar-bg);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-top: 1px solid var(--clr-navbar-border);
+  display: none;
+  justify-content: space-around;
+  align-items: center;
+  height: 58px;
+  z-index: 1000;
+  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.08);
+  transition: background 0.3s ease, border-top 0.3s ease;
+}
+
+.bottom-nav-link {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  text-decoration: none;
+  color: var(--clr-text-dim);
+  font-size: 10px;
+  font-weight: 600;
+  width: 20%;
+  height: 100%;
+  transition: all 0.2s var(--ease-out);
+}
+
+.bottom-nav-icon {
+  font-size: 1.35rem;
+  transition: transform 0.2s var(--ease-spring);
+}
+
+.bottom-nav-link:hover {
+  color: var(--clr-text);
+}
+
+.bottom-nav-link:hover .bottom-nav-icon {
+  transform: translateY(-2px);
+}
+
+.bottom-nav-link.active {
+  color: var(--clr-primary-400);
+}
+
+.bottom-nav-link.active .bottom-nav-icon {
+  transform: scale(1.1);
+}
+
+@media (max-width: 768px) {
+  .bottom-nav {
+    display: flex;
+  }
 }
