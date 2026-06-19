@@ -15,3 +15,9 @@ export async function listUsers(params = {}) {
   const res = await api.get("/api/auth/users", { params });
   return res.data; // { users: [...] }
 }
+
+/** Delete a user by ID (Admins only). */
+export async function deleteUser(id) {
+  const res = await api.delete(`/api/auth/users/${id}`);
+  return res.data; // { success: true, message: "..." }
+}

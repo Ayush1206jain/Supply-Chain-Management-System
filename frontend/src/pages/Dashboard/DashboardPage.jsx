@@ -1,9 +1,11 @@
+import { useState, useEffect } from "react";
 import { useAuth } from "../../context/AuthContext";
 import { useScrollVisibility } from "../../hooks/useScrollVisibility";
+import { listUsers, deleteUser } from "../../api/userService";
 import "./Dashboard.css";
 
 /**
- * Role-aware dashboard — placeholder for Day 14.
+ * 
  * Shows a welcome message and role-specific quick-action cards.
  */
 
@@ -45,7 +47,6 @@ const ROLE_CONFIG = {
       { label: "All Products", path: "/products", icon: "📦" },
       { label: "Sync Status", path: "/sync", icon: "🔗" },
       { label: "Audit Trail", path: "/audit", icon: "🔍" },
-      { label: "Transfers", path: "/transfers", icon: "🔄" },
     ],
   },
 };
@@ -54,6 +55,60 @@ export default function DashboardPage() {
   const { user } = useAuth();
   const config = ROLE_CONFIG[user?.role] || ROLE_CONFIG.retailer;
   const isFooterVisible = useScrollVisibility();
+
+  // Admin user management state
+  const [usersList, setUsersList] = useState([]);
+  const [loadingUsers, setLoadingUsers] = useState(false);
+  const [userError, setUserError] = useState("");
+  const [userSuccess, setUserSuccess] = useState("");
+  const [deletingId, setDeletingId] = useState(null);
+  const [activeRole, setActiveRole] = useState("manufacturer");
+
+  useEffect(() => {
+    if (user?.role === "admin") {
+      fetchUsers();
+    }
+  }, [user]);
+
+  async function fetchUsers() {
+    try {
+      setLoadingUsers(true);
+      setUserError("");
+      const data = await listUsers();
+      // Filter out current admin from the list so they don't delete themselves
+      const currentUserId = user?.id || user?._id;
+      setUsersList((data.users ?? []).filter(u => u._id !== currentUserId));
+    } catch (err) {
+      setUserError("Failed to fetch registered users.");
+    } finally {
+      setLoadingUsers(false);
+    }
+  }
+
+  async function handleRemoveUser(userId, userName) {
+    if (!window.confirm(`Are you sure you want to remove user "${userName}"? This action cannot be undone.`)) {
+      return;
+    }
+
+    try {
+      setDeletingId(userId);
+      setUserError("");
+      setUserSuccess("");
+      await deleteUser(userId);
+      setUserSuccess(`User "${userName}" has been successfully removed.`);
+      // Refresh the list
+      await fetchUsers();
+      setTimeout(() => setUserSuccess(""), 5000);
+    } catch (err) {
+      setUserError(err.response?.data?.message || `Failed to remove user "${userName}".`);
+    } finally {
+      setDeletingId(null);
+    }
+  }
+
+  const manufacturers = usersList.filter((u) => u.role === "manufacturer");
+  const distributors = usersList.filter((u) => u.role === "distributor");
+  const retailers = usersList.filter((u) => u.role === "retailer");
 
   return (
     <div className="dashboard animate-fade-in" id="dashboard-page">
@@ -119,6 +174,212 @@ export default function DashboardPage() {
           ))}
         </div>
       </section>
+
+      {/* Admin User Management Section */}
+      {user?.role === "admin" && (
+        <section className="dashboard-section admin-users-section animate-slide-up">
+          <div className="section-header-row">
+            <h2 className="dashboard-section-title">👥 Registered Users Management</h2>
+          </div>
+
+          {userSuccess && <div className="alert alert-success" style={{ marginBottom: 16 }}>{userSuccess}</div>}
+          {userError && <div className="alert alert-error" style={{ marginBottom: 16 }}>{userError}</div>}
+
+          {loadingUsers ? (
+            <div className="dashboard-loading-placeholder">
+              <div className="spinner" /> Loading registered users...
+            </div>
+          ) : (
+            <div className="admin-users-tables-container">
+              {/* Grid of 3 side-by-side interactive cards */}
+              <div className="admin-role-selector-cards">
+                {/* Manufacturer Card */}
+                <div
+                  className={`role-select-card card manufacturer-card ${activeRole === "manufacturer" ? "active" : ""}`}
+                  onClick={() => setActiveRole("manufacturer")}
+                >
+                  <div className="role-select-card-header">
+                    <span className="role-select-icon">🏭</span>
+                    <span className="role-select-count-badge">{manufacturers.length} Users</span>
+                  </div>
+                  <h3 className="role-select-title">Manufacturers</h3>
+                  <p className="role-select-desc">Manage product producers & origins</p>
+                  <div className="role-select-indicator" />
+                </div>
+
+                {/* Distributor Card */}
+                <div
+                  className={`role-select-card card distributor-card ${activeRole === "distributor" ? "active" : ""}`}
+                  onClick={() => setActiveRole("distributor")}
+                >
+                  <div className="role-select-card-header">
+                    <span className="role-select-icon">🚚</span>
+                    <span className="role-select-count-badge">{distributors.length} Users</span>
+                  </div>
+                  <h3 className="role-select-title">Distributors</h3>
+                  <p className="role-select-desc">Manage logistics & supply nodes</p>
+                  <div className="role-select-indicator" />
+                </div>
+
+                {/* Retailer Card */}
+                <div
+                  className={`role-select-card card retailer-card ${activeRole === "retailer" ? "active" : ""}`}
+                  onClick={() => setActiveRole("retailer")}
+                >
+                  <div className="role-select-card-header">
+                    <span className="role-select-icon">🏪</span>
+                    <span className="role-select-count-badge">{retailers.length} Users</span>
+                  </div>
+                  <h3 className="role-select-title">Retailers</h3>
+                  <p className="role-select-desc">Manage points of sale & verification</p>
+                  <div className="role-select-indicator" />
+                </div>
+              </div>
+
+              {/* Table displaying the currently active role */}
+              <div className="user-role-table-card card active-table-card">
+                {activeRole === "manufacturer" && (
+                  <>
+                    <div className="role-card-header manufacturer-header">
+                      <h3>🏭 Manufacturers List ({manufacturers.length})</h3>
+                    </div>
+                    <div className="table-responsive">
+                      <table className="user-role-table">
+                        <thead>
+                          <tr>
+                            <th>Name</th>
+                            <th>Email</th>
+                            <th style={{ textAlign: "right" }}>Action</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {manufacturers.length === 0 ? (
+                            <tr>
+                              <td colSpan="3" className="empty-row">No registered manufacturers found.</td>
+                            </tr>
+                          ) : (
+                            manufacturers.map((u) => (
+                              <tr key={u._id}>
+                                <td className="user-name-cell">
+                                  <span className="user-avatar-small">M</span>
+                                  {u.name}
+                                </td>
+                                <td>{u.email}</td>
+                                <td style={{ textAlign: "right" }}>
+                                  <button
+                                    type="button"
+                                    className="btn-remove-user-small"
+                                    onClick={() => handleRemoveUser(u._id, u.name)}
+                                    disabled={deletingId === u._id}
+                                  >
+                                    {deletingId === u._id ? "Removing..." : "❌ Remove"}
+                                  </button>
+                                </td>
+                              </tr>
+                            ))
+                          )}
+                        </tbody>
+                      </table>
+                    </div>
+                  </>
+                )}
+
+                {activeRole === "distributor" && (
+                  <>
+                    <div className="role-card-header distributor-header">
+                      <h3>🚚 Distributors List ({distributors.length})</h3>
+                    </div>
+                    <div className="table-responsive">
+                      <table className="user-role-table">
+                        <thead>
+                          <tr>
+                            <th>Name</th>
+                            <th>Email</th>
+                            <th style={{ textAlign: "right" }}>Action</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {distributors.length === 0 ? (
+                            <tr>
+                              <td colSpan="3" className="empty-row">No registered distributors found.</td>
+                            </tr>
+                          ) : (
+                            distributors.map((u) => (
+                              <tr key={u._id}>
+                                <td className="user-name-cell">
+                                  <span className="user-avatar-small">D</span>
+                                  {u.name}
+                                </td>
+                                <td>{u.email}</td>
+                                <td style={{ textAlign: "right" }}>
+                                  <button
+                                    type="button"
+                                    className="btn-remove-user-small"
+                                    onClick={() => handleRemoveUser(u._id, u.name)}
+                                    disabled={deletingId === u._id}
+                                  >
+                                    {deletingId === u._id ? "Removing..." : "❌ Remove"}
+                                  </button>
+                                </td>
+                              </tr>
+                            ))
+                          )}
+                        </tbody>
+                      </table>
+                    </div>
+                  </>
+                )}
+
+                {activeRole === "retailer" && (
+                  <>
+                    <div className="role-card-header retailer-header">
+                      <h3>🏪 Retailers List ({retailers.length})</h3>
+                    </div>
+                    <div className="table-responsive">
+                      <table className="user-role-table">
+                        <thead>
+                          <tr>
+                            <th>Name</th>
+                            <th>Email</th>
+                            <th style={{ textAlign: "right" }}>Action</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {retailers.length === 0 ? (
+                            <tr>
+                              <td colSpan="3" className="empty-row">No registered retailers found.</td>
+                            </tr>
+                          ) : (
+                            retailers.map((u) => (
+                              <tr key={u._id}>
+                                <td className="user-name-cell">
+                                  <span className="user-avatar-small">R</span>
+                                  {u.name}
+                                </td>
+                                <td>{u.email}</td>
+                                <td style={{ textAlign: "right" }}>
+                                  <button
+                                    type="button"
+                                    className="btn-remove-user-small"
+                                    onClick={() => handleRemoveUser(u._id, u.name)}
+                                    disabled={deletingId === u._id}
+                                  >
+                                    {deletingId === u._id ? "Removing..." : "❌ Remove"}
+                                  </button>
+                                </td>
+                              </tr>
+                            ))
+                          )}
+                        </tbody>
+                      </table>
+                    </div>
+                  </>
+                )}
+              </div>
+            </div>
+          )}
+        </section>
+      )}
 
       {/* Info section */}
       <section className="dashboard-section">

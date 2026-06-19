@@ -16,5 +16,6 @@ router.get("/me", authRequired, (req, res) => {
   });
 });
 router.get("/users", authRequired, authController.listUsers);
+router.delete("/users/:id", authRequired, authController.deleteUser);
 
 module.exports = router;

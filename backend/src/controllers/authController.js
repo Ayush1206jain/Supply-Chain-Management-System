@@ -3,6 +3,7 @@ const bcrypt = require("bcryptjs");
 const { User } = require("../models");
 const { ROLES } = require("../constants/roles");
 const { signAccessToken } = require("../utils/jwt");
+const { notifyAdmins } = require("../sockets/notificationSocket");
 
 function validateRole(role) {
   return typeof role === "string" && ROLES.includes(role);
@@ -40,6 +41,18 @@ async function register(req, res) {
     passwordHash,
     role,
   });
+
+  // Notify connected admins in real-time
+  try {
+    notifyAdmins("notification", {
+      type: "USER_REGISTERED",
+      title: "👤 New User Registered",
+      message: `${user.name} (${user.email}) registered as ${user.role.toUpperCase()}.`,
+      timestamp: Date.now(),
+    });
+  } catch (err) {
+    console.error("Failed to notify admins of user registration:", err.message);
+  }
 
   return res.status(201).json({
     success: true,
@@ -111,8 +124,52 @@ async function listUsers(req, res) {
   });
 }
 
+async function deleteUser(req, res) {
+  try {
+    if (req.user.role !== "admin") {
+      return res.status(403).json({
+        success: false,
+        message: "Access denied: Admins only",
+      });
+    }
+
+    const { id } = req.params;
+
+    // Prevent admin from deleting themselves
+    if (id === req.user.id) {
+      return res.status(400).json({
+        success: false,
+        message: "Admins cannot delete themselves",
+      });
+    }
+
+    const user = await User.findById(id);
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    await User.deleteOne({ _id: id });
+
+    return res.status(200).json({
+      success: true,
+      message: "User deleted successfully",
+    });
+  } catch (err) {
+    console.error("deleteUser error:", err);
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error",
+      detail: err.message,
+    });
+  }
+}
+
 module.exports = {
   register,
   login,
   listUsers,
+  deleteUser,
 };

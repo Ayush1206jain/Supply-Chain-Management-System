@@ -245,7 +245,7 @@ export default function TransfersPage() {
   }
 
   return (
-    <div className={`transfers-page animate-fade-in ${!canTransfer ? "retailer-view" : ""}`} id="transfers-page">
+    <div className={`transfers-page animate-fade-in ${(!canTransfer || user?.role === "admin") ? "retailer-view" : ""}`} id="transfers-page">
       <h1 className="transfers-title">
         <svg className="title-icon-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
           <path d="M17 3l4 4-4 4" />
@@ -292,7 +292,7 @@ export default function TransfersPage() {
       )}
 
       <div className="transfers-content-layout">
-        {canTransfer && (
+        {canTransfer && user?.role !== "admin" && (
           <div className="transfers-left-col">
             <div className="transfer-panel" id="transfer-form-panel">
               <div className="transfer-panel-header">
