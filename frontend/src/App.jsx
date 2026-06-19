@@ -14,8 +14,7 @@ import SyncPage from "./pages/Sync/SyncPage";
  * Root application component.
  * – Public routes: /login, /register
  * – Protected routes: / (dashboard), /products, /transfers, /audit, /sync
- * – Day 14: Products and Transfers pages are fully implemented.
- * – Day 15: Audit Trail and Sync Status pages are fully implemented.
+ 
  */
 export default function App() {
   const { isAuthenticated, loading } = useAuth();
@@ -56,7 +55,7 @@ export default function App() {
           }
         />
 
-        {/* Day 14 — Products page */}
+        {/* Products page */}
         <Route
           path="/products"
           element={
@@ -66,7 +65,7 @@ export default function App() {
           }
         />
 
-        {/* Day 14 — Transfers page */}
+        {/* Transfers page */}
         <Route
           path="/transfers"
           element={
@@ -76,7 +75,7 @@ export default function App() {
           }
         />
 
-        {/* Day 15 — Audit Trail page */}
+        {/* Audit Trail page */}
         <Route
           path="/audit"
           element={
@@ -85,8 +84,16 @@ export default function App() {
             </ProtectedRoute>
           }
         />
+        <Route
+          path="/audit/:id"
+          element={
+            <ProtectedRoute>
+              <AuditPage />
+            </ProtectedRoute>
+          }
+        />
 
-        {/* Day 15 — Sync Status panel */}
+        {/*  Sync Status panel */}
         <Route
           path="/sync"
           element={

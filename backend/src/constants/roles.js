@@ -1,4 +1,4 @@
-/** Roles used across the API (JWT + middleware on Day 4). */
+/** Roles used across the API . */
 const ROLES = Object.freeze([
   "manufacturer",
   "distributor",

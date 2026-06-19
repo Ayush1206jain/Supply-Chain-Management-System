@@ -2,7 +2,7 @@ import React from "react";
 import "./SupplyChainBackground.css";
 
 /**
- * SupplyChainBackground — Day 14 UI Polish
+ 
  * Renders:
  * 1. A fixed background layout of 6 squared container nodes (Factory -> Warehouse -> Logistics Hub -> Dist. Center -> Retail Store -> Customer)
  * 2. Animated dotted route connection path with crawling square delivery package nodes.

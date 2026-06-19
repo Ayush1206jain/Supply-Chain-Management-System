@@ -23,7 +23,7 @@ const transferSchema = new mongoose.Schema(
       type: String,
       default: null,
     },
-    /** Aligns with Day 11 (retries / sync). */
+    /** (retries / sync). */
     syncStatus: {
       type: String,
       enum: [...SYNC_STATUS],
@@ -35,7 +35,7 @@ const transferSchema = new mongoose.Schema(
       default: 0,
     },
     /**
-     * Day 2 (P2): tracks whether the receiver has explicitly confirmed
+     * tracks whether the receiver has explicitly confirmed
      * the multi-sig transfer via POST /api/transfers/confirm.
      * Separate from syncStatus so double-confirm is blocked even when
      * the blockchain is unavailable (syncStatus would stay 'failed').

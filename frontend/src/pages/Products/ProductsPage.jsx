@@ -6,7 +6,7 @@ import { useScrollVisibility } from "../../hooks/useScrollVisibility";
 import "./Products.css";
 
 /**
- * ProductsPage — Day 14 & 17
+ * 
  * - Any authenticated user can browse all products.
  * - Manufacturer and Admin can create a new product via the inline form.
  * - Shows blockchain anchor status badge per card.
@@ -436,7 +436,7 @@ const STATUS_MAP = {
   CHAIN_UNAVAILABLE:{ label: "Chain Offline",icon: "⚡" },
 };
 
-/** Individual product card — Day 3 (P1): now fetches live chainStatus */
+/** Individual product card ,now fetches live chainStatus */
 function ProductCard({ product, index }) {
   const isAnchored = !!product.blockchainTxHash;
   const [chainStatus, setChainStatus] = useState("loading");
@@ -468,7 +468,7 @@ function ProductCard({ product, index }) {
           <span className={`product-chain-badge ${isAnchored ? "anchored" : "pending"}`}>
             {isAnchored ? "⛓ On-Chain" : "⏳ Pending"}
           </span>
-          {/* Day 3 (P1): Live ProductStatus enum badge */}
+          {/*Live ProductStatus enum badge */}
           <span className={`chain-status-badge status-${chainStatus}`}>
             {chainStatus === "loading" ? "…" : `${statusInfo.icon} ${statusInfo.label}`}
           </span>

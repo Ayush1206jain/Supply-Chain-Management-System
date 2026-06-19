@@ -234,7 +234,7 @@ async function listTransfersByProduct(req, res) {
   });
 }
 
-// ─── Day 2 (P2): Confirm multi-sig transfer ────────────────────────────────────
+// Confirm multi-sig transfer ────────────────────────────────────
 
 /**
  * POST /api/transfers/confirm

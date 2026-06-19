@@ -37,7 +37,7 @@ async function createProduct(req, res) {
     contentHash,
   });
 
-  // ── Day 9: anchor content hash on-chain ──────────────────────────────────
+  //  anchor content hash on-chain ──────────────────────────────────
   // Fire-and-forget: failure does NOT abort the API response.
   const txHash = await registerProductOnChain(product);
   if (txHash) {
@@ -87,7 +87,7 @@ async function getProductById(req, res) {
   });
 }
 
-// ─── Day 2 (P2): Combined DB + chain status ────────────────────────────────────
+// Combined DB + chain status ────────────────────────────────────
 
 const STATUS_MAP = ["CREATED", "IN_TRANSIT", "DELIVERED", "DISPUTED"];
 
@@ -235,6 +235,65 @@ async function searchProducts(req, res) {
     const projection = q ? { score: { $meta: 'textScore' } } : {};
     if (q) sort.score = { $meta: 'textScore' };
 
+    // If live on-chain status filter is requested
+    if (status) {
+      const allProducts = await Product.find(filter, projection)
+        .populate('owner', 'name email role')
+        .populate('createdBy', 'name email role')
+        .sort(sort)
+        .lean();
+
+      // Resolve live status for all candidate products in parallel
+      const productsWithStatus = await Promise.all(
+        allProducts.map(async (product) => {
+          let chainStatus = "NOT_ANCHORED";
+          try {
+            const chainData = await getProductFromChain(product);
+            if (chainData) {
+              chainStatus = STATUS_MAP[chainData.status] || "UNKNOWN";
+            }
+          } catch (e) {
+            chainStatus = "CHAIN_UNAVAILABLE";
+          }
+          return { ...product, chainStatus };
+        })
+      );
+
+      // Filter by the requested status
+      const filteredProducts = productsWithStatus.filter(
+        (p) => p.chainStatus.toUpperCase() === status.toUpperCase()
+      );
+
+      const total = filteredProducts.length;
+      const totalPages = Math.ceil(total / limitNum);
+      const hasNextPage = pageNum < totalPages;
+      const hasPrevPage = pageNum > 1;
+      const paginatedProducts = filteredProducts.slice(skip, skip + limitNum);
+
+      return res.json({
+        success: true,
+        products: paginatedProducts,
+        pagination: {
+          total,
+          page: pageNum,
+          limit: limitNum,
+          totalPages,
+          hasNextPage,
+          hasPrevPage,
+          nextPage: hasNextPage ? pageNum + 1 : null,
+          prevPage: hasPrevPage ? pageNum - 1 : null,
+        },
+        filters: {
+          q: q || null,
+          status: status || null,
+          owner: owner || null,
+          syncStatus: syncStatus || null,
+          dateFrom: dateFrom || null,
+          dateTo: dateTo || null,
+        },
+      });
+    }
+
     // ── Execute query (count + paginated results in parallel) ─────────
     const [total, products] = await Promise.all([
       Product.countDocuments(filter),
@@ -252,7 +311,7 @@ async function searchProducts(req, res) {
     const hasNextPage = pageNum < totalPages;
     const hasPrevPage = pageNum > 1;
 
-    res.json({
+    return res.json({
       success: true,
       products,
       pagination: {

@@ -1,8 +1,6 @@
-/* ═══════════════════════════════════════════════════════════════
-   AuditPage styles — BlockTrace Day 15
-   ═══════════════════════════════════════════════════════════════ */
 
-/* ── Day 3 (P1): Shared ProductStatus badge styles ──────────────
+
+/* Shared ProductStatus badge styles ──────────────
    Duplicated here from Products.css so AuditPage renders them
    without importing Products.css.                              */
 .chain-status-badge {

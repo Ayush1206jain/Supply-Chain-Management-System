@@ -6,7 +6,7 @@ const { requireRoles } = require("../middleware/requireRole");
 
 const router = express.Router();
 
-// ─── Existing routes (unchanged) ─────────────────────────────────────────────
+// ─── Existing routes ─────────────────────────────────────────────
 router.get("/", authRequired, productController.listProducts);
 router.post(
   "/",
@@ -15,7 +15,7 @@ router.post(
   productController.createProduct
 );
 
-// GET /api/products/search (Day 1 plan)
+// GET /api/products/search 
 router.get("/search", authRequired, productController.searchProducts);
 
 // NOTE: /... specific routes must come BEFORE /:id to avoid matching conflicts.

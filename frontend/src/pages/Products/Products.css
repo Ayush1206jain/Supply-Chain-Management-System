@@ -1,8 +1,8 @@
-/* ═══════════════════════════════════════════════════════════════════════
+/* 
    Products Page — BlockTrace
-   ═══════════════════════════════════════════════════════════════════════ */
+    */
 
-/* ── Page layout ─────────────────────────────────────────────────────── */
+/* ── Page layout */
 .products-page {
   max-width: 1100px;
   margin: 0 auto;
@@ -30,7 +30,7 @@
   background-clip: text;
 }
 
-/* ── Create product panel ─────────────────────────────────────────────── */
+/* ── Create product panel  */
 .create-panel {
   background: var(--clr-surface);
   border: 1px solid var(--clr-border);
@@ -75,7 +75,7 @@
   margin-top: 4px;
 }
 
-/* ── Products grid ────────────────────────────────────────────────────── */
+/* ── Products grid  */
 .products-list-header {
   display: flex;
   align-items: center;
@@ -94,7 +94,7 @@
   gap: 20px;
 }
 
-/* ── Product card ─────────────────────────────────────────────────────── */
+/* ── Product card  */
 .product-card {
   background: var(--clr-surface);
   border: 1px solid var(--clr-border);
@@ -204,7 +204,7 @@
   color: var(--clr-warning);
 }
 
-/* ── Day 3 (P1): ProductStatus enum badges from the P2 contract ─── */
+/* ProductStatus enum badges from the P2 contract ─── */
 .chain-status-badge {
   display: inline-flex;
   align-items: center;

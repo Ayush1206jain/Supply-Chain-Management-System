@@ -1,5 +1,5 @@
 /**
- * auditController.js — Day 10
+ 
  *
  * Provides a unified audit view of a product by combining:
  *   1. DB product record (fields, current owner, content hash)

@@ -26,8 +26,8 @@ export async function createProduct(data) {
 }
 
 /**
- * Day 3 (P1): Get combined DB + live blockchain status for a product.
- * Calls GET /api/products/:id/status (added in Day 2 P2).
+ * Get combined DB + live blockchain status for a product.
+ * Calls GET /api/products/:id/status .
  * Returns { productId, sku, name, dbOwner, chainStatus, pendingTransfer, blockchainTxHash }
  * chainStatus: 'CREATED' | 'IN_TRANSIT' | 'DELIVERED' | 'DISPUTED' | 'NOT_ANCHORED' | 'CHAIN_UNAVAILABLE'
  * @param {string} id  MongoDB ObjectId of the product

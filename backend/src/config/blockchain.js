@@ -1,8 +1,8 @@
 /**
- * blockchain.js — Day 9
+ * 
  *
- * Lazy singleton: creates the ethers provider, signer (backend wallet),
- * and Contract instance on first use.
+ * 
+ * 
  *
  * Required env vars:
  *   BLOCKCHAIN_RPC_URL   – JSON-RPC endpoint (e.g. http://127.0.0.1:8545)

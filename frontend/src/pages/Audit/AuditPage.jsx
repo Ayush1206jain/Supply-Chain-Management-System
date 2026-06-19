@@ -1,11 +1,12 @@
 import { useState, useEffect, useCallback } from 'react';
+import { useParams } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { getAuditReport } from '../../api/auditService';
 import { listProducts, getProductStatus } from '../../api/productService';
 import './Audit.css';
 
 /**
- * AuditPage — Day 15
+ 
  * Allows any authenticated user to look up a product's full audit trail:
  *  - DB product snapshot
  *  - Chronological ownership transfer history
@@ -14,13 +15,14 @@ import './Audit.css';
  */
 export default function AuditPage() {
   const { user } = useAuth();
+  const { id: routeProductId } = useParams();
 
   // Product list for the dropdown
   const [allProducts, setAllProducts] = useState([]);
   const [loadingProducts, setLoadingProducts] = useState(true);
 
   // Search / input state
-  const [productId, setProductId] = useState('');
+  const [productId, setProductId] = useState(routeProductId || '');
   const [manualMode, setManualMode] = useState(false);
   const [loading, setLoading]   = useState(false);
   const [error, setError]       = useState('');
@@ -28,7 +30,7 @@ export default function AuditPage() {
   // Report state
   const [report, setReport] = useState(null);
 
-  // Day 3 (P1): Live chain status from P2 endpoint
+  // Live chain status from P2 endpoint
   const [chainStatusData, setChainStatusData] = useState(null);
 
   // Fetch all products on mount for the dropdown
@@ -44,13 +46,7 @@ export default function AuditPage() {
     }
   }, []);
 
-  useEffect(() => {
-    fetchAllProducts();
-  }, [fetchAllProducts]);
-
-  async function handleSearch(e) {
-    e.preventDefault();
-    const id = productId.trim();
+  const performSearch = useCallback(async (id) => {
     if (!id) return;
     setLoading(true);
     setError('');
@@ -69,6 +65,24 @@ export default function AuditPage() {
     } finally {
       setLoading(false);
     }
+  }, []);
+
+  useEffect(() => {
+    fetchAllProducts();
+  }, [fetchAllProducts]);
+
+  useEffect(() => {
+    if (routeProductId) {
+      setProductId(routeProductId);
+      performSearch(routeProductId);
+    }
+  }, [routeProductId, performSearch]);
+
+  async function handleSearch(e) {
+    e.preventDefault();
+    const id = productId.trim();
+    if (!id) return;
+    performSearch(id);
   }
 
   function renderIntegrityBadge(status) {
@@ -303,7 +317,7 @@ export default function AuditPage() {
                   </div>
                 )}
 
-                {/* Day 3 (P1): Live ProductStatus from P2 /status endpoint */}
+                {/*Live ProductStatus from P2 /status endpoint */}
                 {chainStatusData && (
                   <div className="chain-state-box" id="audit-live-chain-status" style={{ marginTop: 12 }}>
                     <p className="chain-state-title">⛓ Live Product Status (P2)</p>
