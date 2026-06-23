@@ -250,7 +250,7 @@ export default function AuditPage() {
                 <h2 className="audit-section-title">📦 Product Snapshot</h2>
                 <dl className="audit-dl">
                   <dt>Name</dt>       <dd>{report.product?.name || '—'}</dd>
-                  <dt>SKU</dt>        <dd><code>{report.product?.sku || '—'}</code></dd>
+                  <dt>Product Code</dt>        <dd><code>{report.product?.sku || '—'}</code></dd>
                   <dt>Description</dt><dd>{report.product?.description || '—'}</dd>
                   <dt>Price</dt>      <dd>₹{report.product?.price?.toLocaleString('en-IN') ?? '—'}</dd>
                   <dt>Current Owner</dt>

@@ -80,7 +80,7 @@ export default function ProductsPage() {
     setFormSuccess("");
 
     if (!form.sku.trim() || !form.name.trim() || !form.price) {
-      setFormError("SKU, name and price are required.");
+      setFormError("Product Code, name and price are required.");
       return;
     }
     const priceVal = parseFloat(form.price);
@@ -158,7 +158,7 @@ export default function ProductsPage() {
 
           <form className="create-form" onSubmit={handleCreate} noValidate>
             <div className="form-group">
-              <label className="form-label" htmlFor="input-sku">SKU *</label>
+              <label className="form-label" htmlFor="input-sku">Product Code *</label>
               <input
                 id="input-sku"
                 className="form-input"
@@ -240,7 +240,7 @@ export default function ProductsPage() {
           <input
             type="text"
             className="search-input"
-            placeholder="Search by name, SKU, or description..."
+            placeholder="Search by name, Product Code, or description..."
             value={searchQuery}
             onChange={(e) => {
               setCurrentPage(1);
@@ -461,7 +461,7 @@ function ProductCard({ product, index }) {
       <div className="product-card-top">
         <div>
           <p className="product-name">{product.name}</p>
-          <p className="product-sku">SKU: {product.sku}</p>
+          <p className="product-sku">Product Code: {product.sku}</p>
         </div>
         <div style={{ display: "flex", flexDirection: "column", gap: 4, alignItems: "flex-end" }}>
           {/* Existing blockchain anchor badge */}

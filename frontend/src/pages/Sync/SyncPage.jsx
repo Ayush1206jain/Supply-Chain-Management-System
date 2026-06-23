@@ -383,7 +383,7 @@ export default function SyncPage() {
                   <thead>
                     <tr>
                       <th>Product ID</th>
-                      <th>Name / SKU</th>
+                      <th>Name / Product Code</th>
                       <th>Owner</th>
                       <th>Retry Count</th>
                       <th>Created</th>
