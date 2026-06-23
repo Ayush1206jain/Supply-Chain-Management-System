@@ -6,7 +6,7 @@
 
 ## 📋 Table of Contents
 
-- [✨ Key Updates \& Advanced Features](#-key-updates--advanced-features)
+- [✨ Key Features](#-key-updates--advanced-features)
 - [🏗 System Architecture](#-system-architecture)
 - [🛠 Tech Stack Matrix](#-tech-stack-matrix)
 - [📁 Project Directory Structure](#-project-directory-structure)
@@ -55,11 +55,6 @@ Admins have access to a dedicated user management dashboard inside the home pane
 - Support for offset-based pagination (`page`, `limit`), sorting (`asc`, `desc`), and status-based filtering (`syncStatus` and live blockchain status).
 - Interactive filter bar in the UI with instant loading indicators.
 
-### 🎨 Premium UI/UX Polish
-- Custom-built dark/light theme toggle using global CSS variables and responsive glassmorphism styles.
-- Skeleton shimmer loaders for seamless asynchronous updates.
-- Micro-animations, clipboard-copying utilities for blockchain hashes, and a scroll-triggered footer tagline that glides into view when scrolling to the page bottom.
-
 ---
 
 ## 🏗 System Architecture
@@ -98,20 +93,9 @@ Admins have access to a dedicated user management dashboard inside the home pane
 | **Transfer Accepted** | `TransferConfirmed` | Marks transfer complete | `TRANSFER_CONFIRMED` | Both parties receive confirmation alerts; UI timeline updates. |
 | **Dispute Flagged** | `DisputeRaised` | Locks product status in DB | `DISPUTED` / `DISPUTE_RAISED` | Red counterfeit warnings appear on product card & Audit view. |
 
-### Hybrid Architecture Decision Matrix
-
-Our hybrid model optimizes performance and trust:
-
-| Parameter | Off-Chain Database (MongoDB) | On-Chain Blockchain (Ethereum) |
-| :--- | :--- | :--- |
-| **Operation Speed** | ⚡ Sub-millisecond reads & writes | ⏳ Blocks take several seconds to mine |
-| **Transaction Fees**| 💸 Free operational writes | ⛽ Gas fees incurred per state modification |
-| **Decentralized Trust**| ❌ Managed by host database server | ✅ Cryptographically validated by network validators |
-| **Query Flexibility**| ✅ Full-text index, compound filter, regex | ❌ Strict key-value mapping only |
-
 ---
 
-## 🛠 Tech Stack Matrix
+## 🛠 Tech Stack 
 
 | Layer | Component | Technologies |
 | :--- | :--- | :--- |
@@ -412,73 +396,4 @@ Manually triggers the background synchronization worker.
 
 ---
 
-## 👥 Role-Based Access Control (RBAC)
-
-BlockTrace enforces strict role permissions across all operations:
-
-| Capability | Manufacturer | Distributor | Retailer | Platform Admin |
-| :--- | :---: | :---: | :---: | :---: |
-| **Register & Login** | ✅ | ✅ | ✅ | ✅ |
-| **Browse Products & Timeline** | ✅ | ✅ | ✅ | ✅ |
-| **Create/Anchor Products** | ✅ | ❌ | ❌ | ✅ |
-| **Initiate Transfer** | ✅ (if owner) | ✅ (if owner) | ✅ (if owner) | ✅ |
-| **Confirm Transfer Receipt** | ✅ (if receiver)| ✅ (if receiver)| ✅ (if receiver)| ✅ |
-| **File Dispute Report** | ✅ | ✅ | ✅ | ✅ |
-| **Escalate Dispute On-Chain**| ❌ | ❌ | ❌ | ✅ |
-| **Access User Admin Panel** | ❌ | ❌ | ❌ | ✅ |
-| **Monitor/Trigger Sync Jobs** | ❌ | ❌ | ❌ | ✅ |
-
----
-
-## 🧪 Automated Testing
-
-Both smart contracts and backend services are fully tested to ensure stability:
-
-```bash
-# 1. Run smart contract unit tests (15+ cases verifying state changes and reverts)
-cd blockchain
-npm test
-
-# 2. Run backend integration tests (using an in-memory Mongo server and mock Ethers configurations)
-cd ../backend
-npm test
-```
-
----
-
-## 📮 Postman Integration
-
-To quickly test the APIs:
-1. Import `docs/BlockTrace.postman_collection.json` into Postman.
-2. Configure a collection environment variable: `baseUrl = http://localhost:5000`.
-3. Execute the **Auth/Login** request. A post-request script will extract and store the JWT in a `{{token}}` variable.
-4. Subsequent protected requests will automatically include the token.
-
----
-
-## 🏁 17-Day Feature Development Roadmap
-
-All development milestones have been successfully completed:
-
-| Milestone Day | Subsystem Focus | Deliverables | Status |
-| :---: | :--- | :--- | :---: |
-| **Day 1** | System Setup & Spec | Monorepo layout, initial README, architecture blueprints. | ✅ |
-| **Day 2** | Database Modeling | Mongoose schema design for users, products, and transactions. | ✅ |
-| **Day 3** | Express Setup | Express listener, health check routes, and DB connector. | ✅ |
-| **Day 4** | Secure Authentication | JWT creation, bcrypt hashing, and RBAC middleware guards. | ✅ |
-| **Day 5** | Product Catalog API | Catalog creation, validation, and SHA-256 fingerprint generation. | ✅ |
-| **Day 6** | Basic Transfer Logic | DB-level transaction updates and validation rules. | ✅ |
-| **Day 7** | Smart Contract Design | Solidity interfaces, storage mappings, and tracking events. | ✅ |
-| **Day 8** | Hardhat Local Setup | Contract compilation, local deployment script, and test suites. | ✅ |
-| **Day 9** | Ethers.js Integration | Backend integration to execute transactions on-chain. | ✅ |
-| **Day 10**| Verification Audits | Verification logic comparing DB states against blockchain hashes. | ✅ |
-| **Day 11**| Sync Recovery Engine | Background retry workers to handle RPC nodes downtime. | ✅ |
-| **Day 12**| Test Suite Expansion | Full Jest integration tests and expanded contract tests. | ✅ |
-| **Day 13**| Client Setup | React SPA routing, Protected routes, and AuthContext. | ✅ |
-| **Day 14**| Core Operations UI | Dashboard, Product creation, and initial Transfer timeline. | ✅ |
-| **Day 15**| Advanced Views | Audit reports page, Sync control tables, and responsiveness. | ✅ |
-| **Day 16**| Documentation Polish | Startup scripts, architecture updates, and Postman collections. | ✅ |
-| **Day 17**| Advanced Search & Engine | Compound text index search, pagination, and status filters. | ✅ |
-
----
 *BlockTrace — Built for absolute trust and transparency in supply chain networks.*
